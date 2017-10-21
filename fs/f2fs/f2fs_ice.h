@@ -13,8 +13,9 @@
 #ifndef _F2FS_ICE_H
 #define _F2FS_ICE_H
 
+#include <linux/f2fs_fs.h>
 #include "f2fs.h"
-#include "f2fs_crypto.h"
+//#include "f2fs_crypto.h"
 
 #ifdef CONFIG_F2FS_FS_ICE_ENCRYPTION
 static inline int f2fs_should_be_processed_by_ice(const struct inode *inode)
