@@ -37,7 +37,7 @@
 #include <linux/errno.h>
 #include <linux/printk.h>
 
-#include "f2fs_ice.h"
+#include <linux/fs_ice.h>
 #include "pfk_f2fs.h"
 
 static bool pfk_f2fs_ready;
@@ -80,7 +80,7 @@ bool pfk_is_f2fs_type(const struct inode *inode)
 	if (!pfe_is_inode_filesystem_type(inode, "f2fs"))
 		return false;
 
-	return f2fs_should_be_processed_by_ice(inode);
+	return fscrypt_should_be_processed_by_ice(inode);
 }
 
 /**
@@ -102,7 +102,7 @@ static int pfk_f2fs_parse_cipher(const struct inode *inode,
 	if (!inode)
 		return -EINVAL;
 
-	if (!f2fs_is_aes_xts_cipher(inode)) {
+	if (!fscrypt_is_aes_xts_cipher(inode)) {
 		pr_err("f2fs alghoritm is not supported by pfk\n");
 		return -EINVAL;
 	}
@@ -141,25 +141,25 @@ int pfk_f2fs_parse_inode(const struct bio *bio,
 	if (!key_info)
 		return -EINVAL;
 
-	key_info->key = f2fs_get_ice_encryption_key(inode);
+	key_info->key = fscrypt_get_ice_encryption_key(inode);
 	if (!key_info->key) {
 		pr_err("could not parse key from f2fs\n");
 		return -EINVAL;
 	}
 
-	key_info->key_size = f2fs_get_ice_encryption_key_size(inode);
+	key_info->key_size = fscrypt_get_ice_encryption_key_size(inode);
 	if (!key_info->key_size) {
 		pr_err("could not parse key size from f2fs\n");
 		return -EINVAL;
 	}
 
-	key_info->salt = f2fs_get_ice_encryption_salt(inode);
+	key_info->salt = fscrypt_get_ice_encryption_salt(inode);
 	if (!key_info->salt) {
 		pr_err("could not parse salt from f2fs\n");
 		return -EINVAL;
 	}
 
-	key_info->salt_size = f2fs_get_ice_encryption_salt_size(inode);
+	key_info->salt_size = fscrypt_get_ice_encryption_salt_size(inode);
 	if (!key_info->salt_size) {
 		pr_err("could not parse salt size from f2fs\n");
 		return -EINVAL;
@@ -185,6 +185,6 @@ bool pfk_f2fs_allow_merge_bio(const struct bio *bio1,
 	if (!inode1 || !inode2)
 		return false;
 
-	return f2fs_is_ice_encryption_info_equal(inode1, inode2);
+	return fscrypt_is_ice_encryption_info_equal(inode1, inode2);
 }
 

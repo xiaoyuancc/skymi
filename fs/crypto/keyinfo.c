@@ -142,7 +142,9 @@ static const struct {
 	[FS_ENCRYPTION_MODE_AES_128_CBC] = { "cbc(aes)",
 					     FS_AES_128_CBC_KEY_SIZE },
 	[FS_ENCRYPTION_MODE_AES_128_CTS] = { "cts(cbc(aes))",
-					     FS_AES_128_CTS_KEY_SIZE },
+						 FS_AES_128_CTS_KEY_SIZE },
+	[FS_ENCRYPTION_MODE_PRIVATE] = { "bugon",
+							FS_PRIVATE_KEY_SIZE },
 };
 
 static int determine_cipher_type(struct fscrypt_info *ci, struct inode *inode,
@@ -325,23 +327,26 @@ int fscrypt_get_encryption_info(struct inode *inode)
 	} else if (res) {
 		goto out;
 	}
-	ctfm = crypto_alloc_skcipher(cipher_str, 0, 0);
-	if (!ctfm || IS_ERR(ctfm)) {
-		res = ctfm ? PTR_ERR(ctfm) : -ENOMEM;
-		pr_debug("%s: error %d (inode %lu) allocating crypto tfm\n",
-			 __func__, res, inode->i_ino);
-		goto out;
+	if((S_ISDIR(inode->i_mode) || S_ISLNK(inode->i_mode)) 
+		|| crypt_info->ci_data_mode != FS_ENCRYPTION_MODE_PRIVATE) {
+		ctfm = crypto_alloc_skcipher(cipher_str, 0, 0);
+		if (!ctfm || IS_ERR(ctfm)) {
+			res = ctfm ? PTR_ERR(ctfm) : -ENOMEM;
+			pr_debug("%s: error %d (inode %lu) allocating crypto tfm\n",
+				__func__, res, inode->i_ino);
+			goto out;
+		}
+		crypt_info->ci_ctfm = ctfm;
+		crypto_skcipher_clear_flags(ctfm, ~0);
+		crypto_skcipher_set_flags(ctfm, CRYPTO_TFM_REQ_WEAK_KEY);
+		/*
+		* if the provided key is longer than keysize, we use the first
+		* keysize bytes of the derived key only
+		*/
+		res = crypto_skcipher_setkey(ctfm, raw_key, keysize);
+		if (res)
+			goto out;
 	}
-	crypt_info->ci_ctfm = ctfm;
-	crypto_skcipher_clear_flags(ctfm, ~0);
-	crypto_skcipher_set_flags(ctfm, CRYPTO_TFM_REQ_WEAK_KEY);
-	/*
-	 * if the provided key is longer than keysize, we use the first
-	 * keysize bytes of the derived key only
-	 */
-	res = crypto_skcipher_setkey(ctfm, raw_key, keysize);
-	if (res)
-		goto out;
 
 	if (S_ISREG(inode->i_mode) &&
 	    crypt_info->ci_data_mode == FS_ENCRYPTION_MODE_AES_128_CBC) {

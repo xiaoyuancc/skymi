@@ -23,6 +23,7 @@
 #include <linux/module.h>
 #include <linux/bio.h>
 #include <linux/namei.h>
+#include <linux/fs_ice.h>
 #include "fscrypt_private.h"
 
 /*
@@ -39,14 +40,18 @@ static void completion_pages(struct work_struct *work)
 
 	bio_for_each_segment_all(bv, bio, i) {
 		struct page *page = bv->bv_page;
-		int ret = fscrypt_decrypt_page(page->mapping->host, page,
-				PAGE_SIZE, 0, page->index);
-
-		if (ret) {
-			WARN_ON_ONCE(1);
-			SetPageError(page);
-		} else {
+		if (fscrypt_is_ice_enabled()) {
 			SetPageUptodate(page);
+		} else {
+			int ret = fscrypt_decrypt_page(page->mapping->host, page,
+					PAGE_SIZE, 0, page->index);
+
+			if (ret) {
+				WARN_ON_ONCE(1);
+				SetPageError(page);
+			} else {
+				SetPageUptodate(page);
+			}
 		}
 		unlock_page(page);
 	}

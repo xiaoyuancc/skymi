@@ -34,6 +34,9 @@
 #define FS_ENCRYPTION_MODE_AES_256_GCM		2
 #define FS_ENCRYPTION_MODE_AES_256_CBC		3
 #define FS_ENCRYPTION_MODE_AES_256_CTS		4
+#define FS_ENCRYPTION_MODE_PRIVATE        	5
+#define FS_ENCRYPTION_MODE_AES_128_CBC		6
+#define FS_ENCRYPTION_MODE_AES_128_CTS		7
 
 /**
  * Encryption context for inode
@@ -62,6 +65,7 @@ struct fscrypt_context {
 #define FS_AES_256_CBC_KEY_SIZE		32
 #define FS_AES_256_CTS_KEY_SIZE		32
 #define FS_AES_256_XTS_KEY_SIZE		64
+#define FS_PRIVATE_KEY_SIZE 	64
 #define FS_MAX_KEY_SIZE			64
 
 #define FS_KEY_DESC_PREFIX		"fscrypt:"

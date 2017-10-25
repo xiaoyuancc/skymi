@@ -22,6 +22,7 @@
 #include <linux/mm.h>
 #include <linux/memcontrol.h>
 #include <linux/cleancache.h>
+#include <linux/fs_ice.h>
 
 #include "f2fs.h"
 #include "node.h"
@@ -1355,8 +1356,9 @@ static int encrypt_one_page(struct f2fs_io_info *fio)
 	f2fs_wait_on_block_writeback(fio->sbi, fio->old_blkaddr);
 
 retry_encrypt:
-	fio->encrypted_page = fscrypt_encrypt_page(inode, fio->page,
-			PAGE_SIZE, 0, fio->page->index, gfp_flags);
+	if (!fscrypt_using_hardware_encryption(inode))
+		fio->encrypted_page = fscrypt_encrypt_page(inode, fio->page,
+				PAGE_SIZE, 0, fio->page->index, gfp_flags);
 	if (!IS_ERR(fio->encrypted_page))
 		return 0;
 

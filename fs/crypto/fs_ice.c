@@ -10,21 +10,20 @@
  * GNU General Public License for more details.
  */
 
-#include "f2fs_ice.h"
-#include "f2fs_crypto.h"
-
+#include <linux/fs_ice.h>
+#include <linux/fscrypto.h>
 
 /*
  * Retrieves encryption key from the inode
  */
-char *f2fs_get_ice_encryption_key(const struct inode *inode)
+char *fscrypt_get_ice_encryption_key(const struct inode *inode)
 {
-	struct f2fs_crypt_info *ci = NULL;
+	struct fscrypt_info *ci = NULL;
 
 	if (!inode)
 		return NULL;
 
-	ci = f2fs_encryption_info((struct inode *)inode);
+	ci = fscrypt_encryption_info((struct inode *)inode);
 	if (!ci)
 		return NULL;
 
@@ -34,28 +33,28 @@ char *f2fs_get_ice_encryption_key(const struct inode *inode)
 /*
  * Retrieves encryption salt from the inode
  */
-char *f2fs_get_ice_encryption_salt(const struct inode *inode)
+char *fscrypt_get_ice_encryption_salt(const struct inode *inode)
 {
-	struct f2fs_crypt_info *ci = NULL;
+	struct fscrypt_info *ci = NULL;
 
 	if (!inode)
 		return NULL;
 
-	ci = f2fs_encryption_info((struct inode *)inode);
+	ci = fscrypt_encryption_info((struct inode *)inode);
 	if (!ci)
 		return NULL;
 
-	return &(ci->ci_raw_key[f2fs_get_ice_encryption_key_size(inode)]);
+	return &(ci->ci_raw_key[fscrypt_get_ice_encryption_key_size(inode)]);
 }
 
 /*
  * returns true if the cipher mode in inode is AES XTS
  */
-int f2fs_is_aes_xts_cipher(const struct inode *inode)
+int fscrypt_is_aes_xts_cipher(const struct inode *inode)
 {
 	struct f2fs_crypt_info *ci = NULL;
 
-	ci = f2fs_encryption_info((struct inode *)inode);
+	ci = fscrypt_encryption_info((struct inode *)inode);
 	if (!ci)
 		return 0;
 
@@ -65,8 +64,8 @@ int f2fs_is_aes_xts_cipher(const struct inode *inode)
 /*
  * returns true if encryption info in both inodes is equal
  */
-int f2fs_is_ice_encryption_info_equal(const struct inode *inode1,
-	const struct inode *inode2)
+int fscrypt_is_ice_encryption_info_equal(const struct inode *inode1,
+										 const struct inode *inode2)
 {
 	char *key1 = NULL;
 	char *key2 = NULL;
@@ -80,30 +79,30 @@ int f2fs_is_ice_encryption_info_equal(const struct inode *inode1,
 		return 1;
 
 	/* both do not belong to ice, so we don't care, they are equal for us */
-	if (!f2fs_should_be_processed_by_ice(inode1) &&
-		!f2fs_should_be_processed_by_ice(inode2))
+	if (!fscrypt_should_be_processed_by_ice(inode1) &&
+		!fscrypt_should_be_processed_by_ice(inode2))
 		return 1;
 
 	/* one belongs to ice, the other does not -> not equal */
-	if (f2fs_should_be_processed_by_ice(inode1) ^
-		f2fs_should_be_processed_by_ice(inode2))
+	if (fscrypt_should_be_processed_by_ice(inode1) ^
+		fscrypt_should_be_processed_by_ice(inode2))
 		return 0;
 
-	key1 = f2fs_get_ice_encryption_key(inode1);
-	key2 = f2fs_get_ice_encryption_key(inode2);
-	salt1 = f2fs_get_ice_encryption_salt(inode1);
-	salt2 = f2fs_get_ice_encryption_salt(inode2);
+	key1 = fscrypt_get_ice_encryption_key(inode1);
+	key2 = fscrypt_get_ice_encryption_key(inode2);
+	salt1 = fscrypt_get_ice_encryption_salt(inode1);
+	salt2 = fscrypt_get_ice_encryption_salt(inode2);
 
 	/* key and salt should not be null by this point */
 	if (!key1 || !key2 || !salt1 || !salt2 ||
-		(f2fs_get_ice_encryption_key_size(inode1) !=
-		 f2fs_get_ice_encryption_key_size(inode2)) ||
-		(f2fs_get_ice_encryption_salt_size(inode1) !=
-		 f2fs_get_ice_encryption_salt_size(inode2)))
+		(fscrypt_get_ice_encryption_key_size(inode1) !=
+		 fscrypt_get_ice_encryption_key_size(inode2)) ||
+		(fscrypt_get_ice_encryption_salt_size(inode1) !=
+		 fscrypt_get_ice_encryption_salt_size(inode2)))
 		return 0;
 
 	return ((memcmp(key1, key2,
-			f2fs_get_ice_encryption_key_size(inode1)) == 0) &&
-		(memcmp(salt1, salt2,
-			f2fs_get_ice_encryption_salt_size(inode1)) == 0));
+					fscrypt_get_ice_encryption_key_size(inode1)) == 0) &&
+			(memcmp(salt1, salt2,
+					fscrypt_get_ice_encryption_salt_size(inode1)) == 0));
 }

@@ -16,3 +16,9 @@ config FS_ENCRYPTION
 	  feature is similar to ecryptfs, but it is more memory
 	  efficient since it avoids caching the encrypted and
 	  decrypted pages in the page cache.
+
+config FS_ICE_ENCRYPTION
+	bool "fs Encryption with ICE support"
+	default n
+	depends on FS_FS_ENCRYPTION
+	depends on PFK
