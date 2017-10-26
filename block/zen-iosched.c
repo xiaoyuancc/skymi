@@ -166,7 +166,7 @@ static int zen_init_queue(struct request_queue *q, struct elevator_type *e)
     
     eq = elevator_alloc(q, e);
     if (!eq)
-        return -ENOMEM;
+		return -ENOMEM;
 
 	zdata = kmalloc_node(sizeof(*zdata), GFP_KERNEL, q->node);
     if (!zdata) {
