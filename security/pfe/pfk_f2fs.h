@@ -33,6 +33,6 @@ bool pfk_f2fs_allow_merge_bio(const struct bio *bio1,
 
 int __init pfk_f2fs_init(void);
 
-void __exit pfk_f2fs_deinit(void);
+void pfk_f2fs_deinit(void);
 
 #endif /* _PFK_F2FS_H_ */

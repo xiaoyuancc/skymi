@@ -45,7 +45,7 @@ static bool pfk_f2fs_ready;
 /*
  * pfk_f2fs_deinit() - Deinit function, should be invoked by upper PFK layer
  */
-void __exit pfk_f2fs_deinit(void)
+void pfk_f2fs_deinit(void)
 {
 	pfk_f2fs_ready = false;
 }
