@@ -1655,10 +1655,6 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		return -EINVAL;
 	}
 
-#ifdef CONFIG_STATE_NOTIFIER
-		state_suspend();
-#endif
-
 	pinfo = &pdata->panel_info;
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
@@ -1679,6 +1675,10 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		mdss_dba_utils_video_off(pinfo->dba_data);
 		mdss_dba_utils_hdcp_enable(pinfo->dba_data, false);
 	}
+
+#ifdef CONFIG_STATE_NOTIFIER
+		state_suspend();
+#endif
 
 end:
 	pr_debug("%s:-\n", __func__);
