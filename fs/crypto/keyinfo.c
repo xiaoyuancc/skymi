@@ -13,6 +13,7 @@
 #include <linux/ratelimit.h>
 #include <crypto/aes.h>
 #include <crypto/sha.h>
+#include <linux/fs_ice.h>
 #include "fscrypt_private.h"
 
 static struct crypto_shash *essiv_hash_tfm;
@@ -327,7 +328,8 @@ int fscrypt_get_encryption_info(struct inode *inode)
 	} else if (res) {
 		goto out;
 	}
-	if((S_ISDIR(inode->i_mode) || S_ISLNK(inode->i_mode)) 
+
+	if((S_ISDIR(inode->i_mode) || S_ISLNK(inode->i_mode))
 		|| crypt_info->ci_data_mode != FS_ENCRYPTION_MODE_PRIVATE) {
 		ctfm = crypto_alloc_skcipher(cipher_str, 0, 0);
 		if (!ctfm || IS_ERR(ctfm)) {
@@ -346,17 +348,22 @@ int fscrypt_get_encryption_info(struct inode *inode)
 		res = crypto_skcipher_setkey(ctfm, raw_key, keysize);
 		if (res)
 			goto out;
+
+		if (S_ISREG(inode->i_mode) &&
+	    	crypt_info->ci_data_mode == FS_ENCRYPTION_MODE_AES_128_CBC) {
+			res = init_essiv_generator(crypt_info, raw_key, keysize);
+			if (res) {
+				pr_debug("%s: error %d (inode %lu) allocating essiv tfm\n",
+					 __func__, res, inode->i_ino);
+				goto out;
+			}
+		}
+	} else if (!fscrypt_is_ice_enabled()) {
+		pr_warn("%s: ICE support not available\n", __func__);
+		res = -EINVAL;
+		goto out;
 	}
 
-	if (S_ISREG(inode->i_mode) &&
-	    crypt_info->ci_data_mode == FS_ENCRYPTION_MODE_AES_128_CBC) {
-		res = init_essiv_generator(crypt_info, raw_key, keysize);
-		if (res) {
-			pr_debug("%s: error %d (inode %lu) allocating essiv tfm\n",
-				 __func__, res, inode->i_ino);
-			goto out;
-		}
-	}
 	if (cmpxchg(&inode->i_crypt_info, NULL, crypt_info) == NULL)
 		crypt_info = NULL;
 out:
