@@ -25,6 +25,7 @@
 #include <linux/string.h>
 #include <linux/hwinfo.h>
 #include <linux/mdss_io_util.h>
+#include <linux/state_notifier.h>
 
 #include "mdss_dsi.h"
 #include "mdss_dba_utils.h"
@@ -1559,6 +1560,10 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 		return -EINVAL;
 	}
 
+#ifdef CONFIG_STATE_NOTIFIER
+		state_resume();
+#endif
+
 	pinfo = &pdata->panel_info;
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
@@ -1649,6 +1654,10 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 		pr_err("%s: Invalid input data\n", __func__);
 		return -EINVAL;
 	}
+
+#ifdef CONFIG_STATE_NOTIFIER
+		state_suspend();
+#endif
 
 	pinfo = &pdata->panel_info;
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
