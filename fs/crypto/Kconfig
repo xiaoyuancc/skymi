@@ -20,5 +20,5 @@ config FS_ENCRYPTION
 config FS_ICE_ENCRYPTION
 	bool "fs Encryption with ICE support"
 	default n
-	depends on FS_FS_ENCRYPTION
+	depends on FS_ENCRYPTION
 	depends on PFK
