@@ -6392,7 +6392,7 @@ QDF_STATUS wma_mc_process_msg(void *cds_context, cds_msg_t *msg)
 	QDF_STATUS qdf_status = QDF_STATUS_SUCCESS;
 	tp_wma_handle wma_handle;
 	ol_txrx_vdev_handle txrx_vdev_handle = NULL;
-	extern uint8_t *mac_trace_get_wma_msg_string(uint16_t wmaMsg);
+	//extern uint8_t *mac_trace_get_wma_msg_string(uint16_t wmaMsg);
 
 	if (NULL == msg) {
 		WMA_LOGE("msg is NULL");
