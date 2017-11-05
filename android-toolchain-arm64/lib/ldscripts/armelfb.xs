@@ -7,7 +7,7 @@ OUTPUT_FORMAT("elf32-bigarm", "elf32-bigarm",
 	      "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(_start)
-SEARCH_DIR("=/android_kernel/crosstool-ng/builds/aarch64-OP3T-linux-android/aarch64-OP3T-linux-android/lib");
+SEARCH_DIR("=/home/l2/sources/crosstool-ng-by-dorimanx/builds/aarch64-SAGIT-linux-android/aarch64-SAGIT-linux-android/lib");
 SECTIONS
 {
   /* Read-only sections, merged into text segment: */
@@ -185,6 +185,11 @@ SECTIONS
   . = ALIGN(32 / 8);
   __end__ = . ;
   _end = .; PROVIDE (end = .);
+  .stack         0x80000 :
+  {
+    _stack = .;
+    *(.stack)
+  }
   /* Stabs debugging sections.  */
   .stab          0 : { *(.stab) }
   .stabstr       0 : { *(.stabstr) }
@@ -224,11 +229,6 @@ SECTIONS
   /* DWARF Extension.  */
   .debug_macro    0 : { *(.debug_macro) }
   .debug_addr     0 : { *(.debug_addr) }
-    .stack         0x80000 :
-  {
-    _stack = .;
-    *(.stack)
-  }
   .ARM.attributes 0 : { KEEP (*(.ARM.attributes)) KEEP (*(.gnu.attributes)) }
   .note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
