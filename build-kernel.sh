@@ -119,6 +119,8 @@ BUILD_NOW()
 
 		cp READY-KERNEL/Image.gz-dtb READY-KERNEL/installer/boot/;
 
+		android-toolchain-arm64/bin/aarch64-OP3T-linux-android-strip -g READY-KERNEL/installer/boot/ck_modules/wlan.ko
+
 		# get version from config
 		GETVER=$(grep 'Kernel-.*-V' .config |sed 's/Kernel-//g' | sed 's/.*".//g' | sed 's/-OP.*//g');
 

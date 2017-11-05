@@ -1614,7 +1614,7 @@ KBUILD_CPPFLAGS += $(CDEFINES)
 ifeq ($(call cc-option-yn, -Wmaybe-uninitialized),y)
 EXTRA_CFLAGS += -Wmaybe-uninitialized
 endif
-EXTRA_CFLAGS += -Wmissing-prototypes
+EXTRA_CFLAGS += -Wmissing-prototypes -O2 -g
 
 ifeq ($(call cc-option-yn, -Wheader-guard),y)
 EXTRA_CFLAGS += -Wheader-guard
