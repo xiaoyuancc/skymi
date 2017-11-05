@@ -258,7 +258,6 @@ int fscrypt_get_encryption_info(struct inode *inode)
 	struct crypto_skcipher *ctfm;
 	const char *cipher_str;
 	int keysize;
-	u8 *raw_key = NULL;
 	int res;
 
 	if (inode->i_crypt_info)
@@ -309,15 +308,10 @@ int fscrypt_get_encryption_info(struct inode *inode)
 	 * This cannot be a stack buffer because it is passed to the scatterlist
 	 * crypto API as part of key derivation.
 	 */
-	res = -ENOMEM;
-	raw_key = kmalloc(FS_MAX_KEY_SIZE, GFP_NOFS);
-	if (!raw_key)
-		goto out;
-
-	res = validate_user_key(crypt_info, &ctx, raw_key, FS_KEY_DESC_PREFIX,
+	res = validate_user_key(crypt_info, &ctx, crypt_info->ci_raw_key, FS_KEY_DESC_PREFIX,
 				keysize);
 	if (res && inode->i_sb->s_cop->key_prefix) {
-		int res2 = validate_user_key(crypt_info, &ctx, raw_key,
+		int res2 = validate_user_key(crypt_info, &ctx, crypt_info->ci_raw_key,
 					     inode->i_sb->s_cop->key_prefix,
 					     keysize);
 		if (res2) {
@@ -345,13 +339,13 @@ int fscrypt_get_encryption_info(struct inode *inode)
 		* if the provided key is longer than keysize, we use the first
 		* keysize bytes of the derived key only
 		*/
-		res = crypto_skcipher_setkey(ctfm, raw_key, keysize);
+		res = crypto_skcipher_setkey(ctfm, crypt_info->ci_raw_key, keysize);
 		if (res)
 			goto out;
 
 		if (S_ISREG(inode->i_mode) &&
 	    	crypt_info->ci_data_mode == FS_ENCRYPTION_MODE_AES_128_CBC) {
-			res = init_essiv_generator(crypt_info, raw_key, keysize);
+			res = init_essiv_generator(crypt_info, crypt_info->ci_raw_key, keysize);
 			if (res) {
 				pr_debug("%s: error %d (inode %lu) allocating essiv tfm\n",
 					 __func__, res, inode->i_ino);
@@ -370,7 +364,6 @@ out:
 	if (res == -ENOKEY)
 		res = 0;
 	put_crypt_info(crypt_info);
-	kzfree(raw_key);
 	return res;
 }
 EXPORT_SYMBOL(fscrypt_get_encryption_info);

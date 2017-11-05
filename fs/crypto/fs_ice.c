@@ -11,7 +11,20 @@
  */
 
 #include <linux/fs_ice.h>
-#include <linux/fscrypto.h>
+#include "fscrypt_private.h"
+
+inline struct fscrypt_info *fscrypt_encryption_info(struct inode *inode)
+{
+	return inode->i_crypt_info;
+}
+
+inline int fscrypt_using_hardware_encryption(struct inode *inode)
+{
+	struct fscrypt_info *ci = fscrypt_encryption_info(inode);
+
+	return S_ISREG(inode->i_mode) && ci &&
+		ci->ci_data_mode == FS_ENCRYPTION_MODE_PRIVATE;
+}
 
 /*
  * Retrieves encryption key from the inode
@@ -52,13 +65,13 @@ char *fscrypt_get_ice_encryption_salt(const struct inode *inode)
  */
 int fscrypt_is_aes_xts_cipher(const struct inode *inode)
 {
-	struct f2fs_crypt_info *ci = NULL;
+	struct fscrypt_info *ci = NULL;
 
 	ci = fscrypt_encryption_info((struct inode *)inode);
 	if (!ci)
 		return 0;
 
-	return (ci->ci_data_mode == F2FS_ENCRYPTION_MODE_PRIVATE);
+	return (ci->ci_data_mode == FS_ENCRYPTION_MODE_PRIVATE);
 }
 
 /*

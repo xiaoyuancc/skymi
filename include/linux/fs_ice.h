@@ -14,20 +14,17 @@
 #ifndef _LINUX_FS_ICE_H
 #define _LINUX_FS_ICE_H
 
+#include <linux/fs.h>
+#include <linux/types.h>
+
+#define  FS_AES_256_XTS_KEY_SIZE  64
+
 #ifdef CONFIG_FS_ICE_ENCRYPTION
 
-static inline struct fscrypt_info *fscrypt_encryption_info(struct inode *inode)
-{
-	return inode->i_crypt_info;
-}
+bool fscrypt_encrypted_inode(struct inode *inode);
 
-static inline int fscrypt_using_hardware_encryption(struct inode *inode)
-{
-	struct fscrypt_info *ci = fscrypt_encryption_info(inode);
+int fscrypt_using_hardware_encryption(struct inode *inode);
 
-	return S_ISREG(inode->i_mode) && ci &&
-		ci->ci_data_mode == FS_ENCRYPTION_MODE_PRIVATE;
-}
 
 static inline int fscrypt_should_be_processed_by_ice(const struct inode *inode)
 {
@@ -63,10 +60,6 @@ static inline size_t fscrypt_get_ice_encryption_salt_size(
 }
 
 #else
-static inline struct f2fs_crypt_info *f2fs_encryption_info(struct inode *inode)
-{
-	return ERR_PTR(-EOPNOTSUPP);
-}
 
 static inline int fscrypt_using_hardware_encryption(struct inode *inode) { return 0; }
 

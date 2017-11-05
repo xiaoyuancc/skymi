@@ -60,6 +60,7 @@ struct fscrypt_info {
 	struct crypto_skcipher *ci_ctfm;
 	struct crypto_cipher *ci_essiv_tfm;
 	u8 ci_master_key[FS_KEY_DESCRIPTOR_SIZE];
+	char ci_raw_key[FS_MAX_KEY_SIZE];
 };
 
 typedef enum {
