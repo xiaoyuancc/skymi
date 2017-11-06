@@ -80,6 +80,8 @@ BUILD_NOW()
 
 	# build kernel and modules
 	time make ARCH=arm64 CROSS_COMPILE=android-toolchain-arm64/bin/aarch64-SAGIT-linux-android- -j $NR_CPUS
+	
+	STRIP=android-toolchain-arm64/bin/aarch64-SAGIT-linux-android-strip
 
 	cp "$KERNELDIR"/.config "$KERNELDIR"/arch/arm64/configs/"$KERNEL_CONFIG_FILE";
 
@@ -93,6 +95,7 @@ BUILD_NOW()
 		cp "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb READY-KERNEL/;
 
 		for i in $(find "$KERNELDIR" -name '*.ko'); do
+			$STRIP -g "$i"
 			cp -av "$i" READY-KERNEL/modules/;
 		done;
 
@@ -118,8 +121,6 @@ BUILD_NOW()
 		du -sh READY-KERNEL/installer/boot/ck_modules/
 
 		cp READY-KERNEL/Image.gz-dtb READY-KERNEL/installer/boot/;
-
-		android-toolchain-arm64/bin/aarch64-SAGIT-linux-android-strip -g READY-KERNEL/installer/boot/ck_modules/wlan.ko
 
 		# get version from config
 		GETVER=$(grep 'Kernel-.*-V' .config |sed 's/Kernel-//g' | sed 's/.*".//g' | sed 's/-OP.*//g');
