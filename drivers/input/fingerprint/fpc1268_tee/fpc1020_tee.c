@@ -37,6 +37,8 @@
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
 #include <linux/wakelock.h>
+#include <linux/fb.h>
+#include <linux/notifier.h>
 
 #define FPC_TTW_HOLD_TIME 2000
 
@@ -82,6 +84,9 @@ struct fpc1020_data {
 	bool prepared;
 	atomic_t wakeup_enabled; /* Used both in ISR and non-ISR */
 	int irqf;
+	int fb_black;
+	struct notifier_block fb_notif;
+	struct work_struct pm_work;
 };
 
 static irqreturn_t fpc1020_irq_handler(int irq, void *handle);
@@ -478,13 +483,63 @@ static const struct attribute_group attribute_group = {
 	.attrs = attributes,
 };
 
+static void set_fingerprintd_nice(int nice)
+{
+	struct task_struct *p;
+
+	read_lock(&tasklist_lock);
+	for_each_process(p) {
+		if (!memcmp(p->comm, "fingerprintd", 13)) {
+			set_user_nice(p, nice);
+			break;
+		}
+	}
+	read_unlock(&tasklist_lock);
+}
+
+static void fpc1020_suspend_resume(struct work_struct *work)
+{
+	struct fpc1020_data *fpc1020 =
+		container_of(work, typeof(*fpc1020), pm_work);
+
+	/*
+	 * Elevate fingerprintd priority when screen is off to ensure
+	 * the fingerprint sensor is responsive and that the haptic
+	 * response on successful verification always fires.
+	 */
+	if (!fpc1020->fb_black)
+		set_fingerprintd_nice(0);
+	else
+		set_fingerprintd_nice(-1);
+}
+
+static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
+{
+	struct fpc1020_data *fpc1020 = container_of(self, struct fpc1020_data, fb_notif);
+	struct fb_event *evdata = data;
+	int *blank = evdata->data;
+
+	if (event != FB_EARLY_EVENT_BLANK)
+		return 0;
+
+	if (*blank == FB_BLANK_UNBLANK) {
+		fpc1020->fb_black = 0;
+		queue_work(system_highpri_wq, &fpc1020->pm_work);
+	} else if (*blank == FB_BLANK_POWERDOWN) {
+		fpc1020->fb_black = 1;
+		queue_work(system_highpri_wq, &fpc1020->pm_work);
+	}
+
+	return 0;
+}
+
 static irqreturn_t fpc1020_irq_handler(int irq, void *handle)
 {
 	struct fpc1020_data *fpc1020 = handle;
 
 	dev_dbg(fpc1020->dev, "%s\n", __func__);
 
-	if (atomic_read(&fpc1020->wakeup_enabled)) {
+	if (fpc1020->fb_black && atomic_read(&fpc1020->wakeup_enabled)) {
 		wake_lock_timeout(&fpc1020->ttw_wl,
 					msecs_to_jiffies(FPC_TTW_HOLD_TIME));
 	}
@@ -570,6 +625,14 @@ static int fpc1020_probe(struct platform_device *pdev)
 	}
 
 	atomic_set(&fpc1020->wakeup_enabled, 1);
+
+	INIT_WORK(&fpc1020->pm_work, fpc1020_suspend_resume);
+
+	fpc1020->fb_notif.notifier_call = fb_notifier_callback;
+	rc = fb_register_client(&fpc1020->fb_notif);
+	if(rc)
+		dev_err(fpc1020->dev, "Unable to register fb_notifier: %d\n", rc);
+    fpc1020->fb_black = 0;
 
 	fpc1020->irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT | IRQF_NO_SUSPEND;
 	device_init_wakeup(dev, 1);
