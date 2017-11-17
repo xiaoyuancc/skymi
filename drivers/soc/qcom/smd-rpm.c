@@ -22,7 +22,7 @@
 #include <linux/soc/qcom/smd.h>
 #include <linux/soc/qcom/smd-rpm.h>
 
-#define RPM_REQUEST_TIMEOUT     (5 * HZ)
+#define RPM_REQUEST_TIMEOUT     5000
 
 /**
  * struct qcom_smd_rpm - state of the rpm device driver
@@ -136,7 +136,7 @@ int qcom_rpm_smd_write(struct qcom_smd_rpm *rpm,
 	if (ret)
 		goto out;
 
-	left = wait_for_completion_timeout(&rpm->ack, RPM_REQUEST_TIMEOUT);
+	left = wait_for_completion_timeout(&rpm->ack, msecs_to_jiffies(RPM_REQUEST_TIMEOUT));
 	if (!left)
 		ret = -ETIMEDOUT;
 	else
