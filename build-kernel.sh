@@ -17,28 +17,14 @@ KERNELDIR=$(readlink -f .);
 KERNEL_CONFIG_FILE=sagit_user_defconfig;
 
 echo "Initialising................."
-if [ -e "$KERNELDIR"/READY-KERNEL/Image.gz-dtb ]; then
-	rm "$KERNELDIR"/READY-KERNEL/Image.gz-dtb;
+if [ -e "$KERNELDIR"/mkbootimg_tools/boot/kernel ]; then
+	rm "$KERNELDIR"/mkbootimg_tools/boot/kernel;
 fi;
-if [ -e "$KERNELDIR"/READY-KERNEL/modules/wlan.ko ]; then
-	rm "$KERNELDIR"/READY-KERNEL/modules/*.ko;
+if [ -e "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/wlan.ko ]; then
+	rm "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/*.ko;
 fi;
 if [ -e "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb ]; then
 	rm "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
-fi;
-
-if [ -e "$KERNELDIR"/READY-KERNEL/installer/boot/ck_modules ]; then
-	rm -rf "$KERNELDIR"/READY-KERNEL/installer/boot/ck_modules;
-fi;
-
-CHECK_ZIP=$(find READY-KERNEL/ -name *.zip | wc -l);
-if [ "$CHECK_ZIP" -gt "0" ]; then
-	rm READY-KERNEL/*.zip;
-fi;
-
-# check if .config exist before building
-if [ ! -e "$KERNELDIR/.config" ]; then
-	cp "$KERNELDIR"/arch/arm64/configs/"$KERNEL_CONFIG_FILE" "$KERNELDIR"/.config;
 fi;
 
 BUILD_NOW()
@@ -92,50 +78,30 @@ BUILD_NOW()
 		# move the compiled Image.gz-dtb and modules into the READY-KERNEL working directory
 		echo "Move compiled objects........"
 
-		cp "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb READY-KERNEL/;
+		cp "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb mkbootimg_tools/boot/kernel;
 
 		for i in $(find "$KERNELDIR" -name '*.ko'); do
 			$STRIP -g "$i"
-			cp -av "$i" READY-KERNEL/modules/;
+			cp -av "$i" mkbootimg_tools/boot/ramdisk/crk_modules/;
 		done;
 
-		chmod 755 READY-KERNEL/modules/*.ko
+		chmod 644 mkbootimg_tools/boot/ramdisk/crk_modules/*.ko
 
 		if [ "$PYTHON_WAS_3" -eq "1" ]; then
 			rm /usr/bin/python
 			ln -s /usr/bin/python3 /usr/bin/python
 		fi;
 
-		# add kernel config to kernel zip for other devs
-		cp "$KERNELDIR"/.config READY-KERNEL/installer;
-
-		# copy modules to installer.
-		if [ ! -e READY-KERNEL/installer/boot/ck_modules/qca_cld ]; then
-			mkdir -p READY-KERNEL/installer/boot/ck_modules/qca_cld
-		fi;
-		#cp READY-KERNEL/Stock_WIFI/qca_cld_wlan.stock READY-KERNEL/installer/boot/ck_modules/wlan.ko
-		echo "place holder" > READY-KERNEL/installer/boot/ck_modules/qca_cld/ignore-me
-		cp -v -r -p READY-KERNEL/modules/*.ko READY-KERNEL/installer/boot/ck_modules/
-		echo "ok" > READY-KERNEL/installer/boot/ck_modules/ck_modules.ok
 		sync
-		du -sh READY-KERNEL/installer/boot/ck_modules/
 
-		cp READY-KERNEL/Image.gz-dtb READY-KERNEL/installer/boot/;
+		cd mkbootimg_tools; 
 
-		# get version from config
-		GETVER=$(grep 'Kernel-.*-V' .config |sed 's/Kernel-//g' | sed 's/.*".//g' | sed 's/-OP.*//g');
+		./mkboot boot boot2.img
 
-		# create the flashable zip file from the contents of the installer directory
-		cd READY-KERNEL/installer/;
-		echo "Creating flashable zip..........."
-		zip -r Kernel-"${GETVER}"-XiaoMi6-"$(date +"[%H-%M]-[%d-%m]-N")".zip * >/dev/null
-		mv *.zip ../
-		cd $KERNELDIR;
 		echo "Cleaning";
-		rm "$KERNELDIR"/READY-KERNEL/Image.gz-dtb;
 		rm "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
-		rm "$KERNELDIR"/READY-KERNEL/modules/*.ko;
-		rm -rf "$KERNELDIR"/READY-KERNEL/installer/boot/ck_modules;
+		rm -rf "$KERNELDIR"/mkbootimg_tools/boot/kernel;
+		rm -rf "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/*.ko;
 		echo "All Done";
 	else
 		if [ "$PYTHON_WAS_3" -eq "1" ]; then
@@ -150,3 +116,5 @@ BUILD_NOW()
 
 BUILD_NOW;
 
+#./sepolicy-inject -s system_server -t rootfs -c system -p module_load -P sepolicy -o sepolicy2
+#./sepolicy-inject -s shell -t rootfs -c file -p getattr -P sepolicy2 -o sepolicy3
