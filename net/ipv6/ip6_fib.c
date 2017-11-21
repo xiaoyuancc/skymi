@@ -922,6 +922,8 @@ add:
 			ins = &rt->dst.rt6_next;
 			iter = *ins;
 			while (iter) {
+				if (iter->rt6i_metric > rt->rt6i_metric)
+					break;
 				if (rt6_qualify_for_ecmp(iter)) {
 					*ins = iter->dst.rt6_next;
 					iter->rt6i_node = NULL;
