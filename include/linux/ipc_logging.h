@@ -14,6 +14,8 @@
 #define _IPC_LOGGING_H
 
 #include <linux/types.h>
+#include <linux/errno.h>
+#include <linux/slab.h>
 
 #define MAX_MSG_SIZE 255
 
@@ -39,6 +41,10 @@ struct decode_context {
 	int output_format;      /* 0 = debugfs */
 	char *buff;             /* output buffer */
 	int size;               /* size of output buffer */
+};
+
+struct dummy_ipc_log_context {
+	int dummy;
 };
 
 #if defined(CONFIG_IPC_LOGGING)
@@ -228,7 +234,15 @@ int ipc_log_context_destroy(void *ctxt);
 
 static inline void *ipc_log_context_create(int max_num_pages,
 	const char *modname, uint16_t user_version)
-{ return NULL; }
+{
+	struct dummy_ipc_log_context *ctxt;
+	ctxt = kzalloc(sizeof(struct dummy_ipc_log_context), GFP_KERNEL);
+	if (!ctxt) {
+		pr_err("%s: cannot create ipc_log_context\n", __func__);
+		return NULL;
+	} 
+	return (void *)ctxt; 
+}
 
 static inline void msg_encode_start(struct encode_context *ectxt,
 	uint32_t type) { }
@@ -283,7 +297,13 @@ static inline int add_deserialization_func(void *ctxt, int type,
 { return 0; }
 
 static inline int ipc_log_context_destroy(void *ctxt)
-{ return 0; }
+{
+	if (!ctxt)
+		return 0;
+	
+	kfree(ctxt); 
+	return 0; 
+}
 
 #endif
 
