@@ -5,6 +5,7 @@
 #
 
 import /init.environ.rc
+import /init.crk.rc
 import /init.usb.rc
 import /init.${ro.hardware}.rc
 import /init.usb.configfs.rc
