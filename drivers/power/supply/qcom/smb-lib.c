@@ -624,6 +624,7 @@ static void smblib_rerun_apsd(struct smb_charger *chg)
 }
 
 #define PERIPHERAL_MASK		0xFF
+#if 0
 static u16 peripheral_base;
 static char log[256] = "";
 static char version[8] = "smb:01:";
@@ -748,6 +749,7 @@ static void dump_regs(struct smb_charger *chg)
 
 	dump_reg(chg, 0x1700 + addr, NULL);
 }
+#endif
 
 static const struct apsd_result *smblib_update_usb_type(struct smb_charger *chg)
 {
@@ -1824,7 +1826,7 @@ int smblib_get_prop_batt_status(struct smb_charger *chg,
 		smblib_err(chg, "Couldn't read batt health rc=%d\n", rc);
 
 	/*this is a workaround to support type-c apapter without PD*/
-	 smblib_dbg(chg, PR_MISC, "typec_en_dis_active = %d\n", chg->typec_en_dis_active);
+	smblib_dbg(chg, PR_MISC, "typec_en_dis_active = %d\n", chg->typec_en_dis_active);
 
 	if (chg->typec_en_dis_active && pval.intval != POWER_SUPPLY_HEALTH_OVERHEAT
 				&& pval.intval != POWER_SUPPLY_HEALTH_COLD) {
@@ -5093,7 +5095,7 @@ static void smblib_reg_work(struct work_struct *work)
 	int rc, usb_present;
 	union power_supply_propval val;
 
-	dump_regs(chg);
+	//dump_regs(chg);
 	rc = smblib_get_prop_usb_present(chg, &val);
 	if (rc < 0) {
 		pr_err("Couldn't get usb present rc=%d\n", rc);
