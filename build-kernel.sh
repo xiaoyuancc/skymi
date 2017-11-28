@@ -116,5 +116,11 @@ BUILD_NOW()
 
 BUILD_NOW;
 
-#./sepolicy-inject -s system_server -t rootfs -c system -p module_load -P sepolicy -o sepolicy2
-#./sepolicy-inject -s shell -t rootfs -c file -p getattr -P sepolicy2 -o sepolicy3
+#./sepolicy-inject -s system_server -t rootfs -c system -p module_load -P sepolicy
+#./sepolicy-inject -s shell -t rootfs -c file -p getattr -P sepolicy
+#./sepolicy-inject -s mt_daemon -t rootfs -c dir -p read -P sepolicy2
+#./sepolicy-inject -s mt_daemon -t rootfs -c lnk_file -p getattr -P sepolicy
+#./sepolicy-inject -s mt_daemon -t storage_file -c dir -p getattr -P sepolicy
+#./sepolicy-inject -s mt_daemon -t adsprpcd_file -c dir -p getattr -P sepolicy
+#./sepolicy-inject -s mt_daemon -t cache_file -c dir -p getattr -P sepolicy
+#./sepolicy-inject -s mt_daemon -t tmpfs -c dir -p search -P sepolicy2
