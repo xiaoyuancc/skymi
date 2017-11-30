@@ -648,7 +648,7 @@ static void goodix_suspend_resume(struct work_struct *work)
 	if (!data->fb_black)
 		set_fingerprintd_nice(0);
 	else
-		set_fingerprintd_nice(-1);
+		set_fingerprintd_nice(MIN_NICE);
 }
 
 static int goodix_fb_state_chg_callback(struct notifier_block *nb,
