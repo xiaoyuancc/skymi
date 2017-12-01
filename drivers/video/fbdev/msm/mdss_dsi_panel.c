@@ -26,6 +26,7 @@
 #include <linux/hwinfo.h>
 #include <linux/mdss_io_util.h>
 #include <linux/state_notifier.h>
+#include <linux/display_state.h>
 
 #include "mdss_dsi.h"
 #include "mdss_dba_utils.h"
@@ -61,6 +62,7 @@
 
 DEFINE_LED_TRIGGER(bl_led_trigger);
 
+static bool display_on = true;
 static bool mdss_panel_reset_skip;
 static struct mdss_panel_info *mdss_pinfo;
 
@@ -86,6 +88,12 @@ void mdss_dsi_ulps_suspend_enable(bool enable)
 {
 	if (mdss_pinfo)
 		mdss_pinfo->ulps_suspend_enabled = enable;
+}
+
+
+bool is_display_on()
+{
+	return display_on;
 }
 
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
@@ -1564,6 +1572,8 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 		state_resume();
 #endif
 
+	display_on = true;
+
 	pinfo = &pdata->panel_info;
 	ctrl = container_of(pdata, struct mdss_dsi_ctrl_pdata,
 				panel_data);
@@ -1679,6 +1689,8 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 #ifdef CONFIG_STATE_NOTIFIER
 		state_suspend();
 #endif
+
+	display_on = false;
 
 end:
 	pr_debug("%s:-\n", __func__);
