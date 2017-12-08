@@ -510,7 +510,7 @@ static void fpc1020_suspend_resume(struct work_struct *work)
 	if (!fpc1020->fb_black)
 		set_fingerprintd_nice(0);
 	else
-		set_fingerprintd_nice(MIN_NICE);
+		set_fingerprintd_nice(-1);
 }
 
 static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data)
