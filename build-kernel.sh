@@ -27,6 +27,10 @@ if [ -e "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb ]; then
 	rm "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
 fi;
 
+if [ -e "$KERNELDIR"/READY-KERNEL/boot.img ]; then
+	rm "$KERNELDIR"/READY-KERNEL/boot.img;
+fi;
+
 BUILD_NOW()
 {
 	PYTHON_CHECK=$(ls -la /usr/bin/python | grep python3 | wc -l);
@@ -82,10 +86,10 @@ BUILD_NOW()
 
 		for i in $(find "$KERNELDIR" -name '*.ko'); do
 			$STRIP -g "$i"
-			cp -av "$i" mkbootimg_tools/boot/ramdisk/crk_modules/;
+			cp -av "$i" "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/;
 		done;
 
-		chmod 644 mkbootimg_tools/boot/ramdisk/crk_modules/*.ko
+		chmod 644 "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/*.ko
 
 		if [ "$PYTHON_WAS_3" -eq "1" ]; then
 			rm /usr/bin/python
@@ -94,9 +98,14 @@ BUILD_NOW()
 
 		sync
 
-		cd mkbootimg_tools; 
+		cd "$KERNELDIR"/mkbootimg_tools; 
 
-		./mkboot boot boot2.img
+		"$KERNELDIR"/mkbootimg_tools/mkboot boot boot2.img
+
+		cp "$KERNELDIR"/mkbootimg_tools/boot2.img "$KERNELDIR"/READY-KERNEL/boot.img
+		cd "$KERNELDIR"/READY-KERNEL;
+		zip -r Kernel-SAGIT-T-"$(date +"[%H-%M]-[%d-%m]-N")".zip * >/dev/null
+		mv *.zip "$KERNELDIR"/
 
 		echo "Cleaning";
 		rm "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
