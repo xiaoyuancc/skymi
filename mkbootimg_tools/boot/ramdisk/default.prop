@@ -5,11 +5,11 @@ ro.miui.has_cust_partition=true
 ro.secureboot.devicelock=1
 ro.sys.sdcardfs=1
 ro.oem_unlock_supported=1
-ro.secure=1
 security.perf_harden=1
 ro.adb.secure=1
 ro.allow.mock.location=0
 ro.debuggable=0
+ro.secure=1
 ro.zygote=zygote64_32
 pm.dexopt.first-boot=interpret-only
 pm.dexopt.boot=verify-profile
@@ -33,8 +33,8 @@ persist.sys.timezone=Asia/Shanghai
 #
 # BOOTIMAGE_BUILD_PROPERTIES
 #
-ro.bootimage.build.date=Thu Nov 23 00:37:19 CST 2017
-ro.bootimage.build.date.utc=1511368639
-ro.bootimage.build.fingerprint=Xiaomi/sagit/sagit:7.1.1/NMF26X/7.11.23:user/release-keys
+ro.bootimage.build.date=Thu Dec 7 00:53:03 CST 2017
+ro.bootimage.build.date.utc=1512579183
+ro.bootimage.build.fingerprint=Xiaomi/sagit/sagit:7.1.1/NMF26X/7.12.7:user/release-keys
 persist.sys.usb.config=none
 
