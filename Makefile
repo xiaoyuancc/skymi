@@ -399,7 +399,8 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -std=gnu89 $(call cc-option,-fno-PIE) -mcpu=cortex-a73.cortex-a53 -mtune=cortex-a73.cortex-a53
+		   -std=gnu89 $(call cc-option,-fno-PIE) \
+		   -mcpu=cortex-a73.cortex-a53+crypto+crc -mtune=cortex-a73.cortex-a53
 
 # Flash optimization setup
 KBUILD_CFLAGS	+= -O2 -g0 -DNDEBUG
