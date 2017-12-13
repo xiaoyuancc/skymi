@@ -27,15 +27,17 @@
 #ifndef _NDK_MEDIA_CODEC_H
 #define _NDK_MEDIA_CODEC_H
 
-#include <android/native_window.h>
+#include <stdint.h>
+#include <sys/cdefs.h>
 
 #include "NdkMediaCrypto.h"
 #include "NdkMediaError.h"
 #include "NdkMediaFormat.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
+
+struct ANativeWindow;
+typedef struct ANativeWindow ANativeWindow;
 
 
 struct AMediaCodec;
@@ -57,6 +59,8 @@ enum {
     AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED = -2,
     AMEDIACODEC_INFO_TRY_AGAIN_LATER = -1
 };
+
+#if __ANDROID_API__ >= 21
 
 /**
  * Create codec by name. Use this if you know the exact codec you want to use.
@@ -127,17 +131,46 @@ uint8_t* AMediaCodec_getOutputBuffer(AMediaCodec*, size_t idx, size_t *out_size)
  */
 ssize_t AMediaCodec_dequeueInputBuffer(AMediaCodec*, int64_t timeoutUs);
 
-/**
- * Send the specified buffer to the codec for processing.
+/*
+ * __USE_FILE_OFFSET64 changes the type of off_t in LP32, which changes the ABI
+ * of these declarations to  not match the platform. In that case, define these
+ * APIs in terms of int32_t instead. Passing an off_t in this situation will
+ * result in silent truncation unless the user builds with -Wconversion, but the
+ * only alternative it to not expose them at all for this configuration, which
+ * makes the whole API unusable.
+ *
+ * https://github.com/android-ndk/ndk/issues/459
  */
-media_status_t AMediaCodec_queueInputBuffer(AMediaCodec*,
-        size_t idx, off_t offset, size_t size, uint64_t time, uint32_t flags);
+#if defined(__USE_FILE_OFFSET64) && !defined(__LP64__)
+#define _off_t_compat int32_t
+#else
+#define _off_t_compat off_t
+#endif  /* defined(__USE_FILE_OFFSET64) && !defined(__LP64__) */
+
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || \
+    __STDC_VERSION__ >= 201112L
+#include <assert.h>
+static_assert(sizeof(_off_t_compat) == sizeof(long),
+              "_off_t_compat does not match the NDK ABI. See "
+              "https://github.com/android-ndk/ndk/issues/459.");
+#endif
 
 /**
  * Send the specified buffer to the codec for processing.
  */
-media_status_t AMediaCodec_queueSecureInputBuffer(AMediaCodec*,
-        size_t idx, off_t offset, AMediaCodecCryptoInfo*, uint64_t time, uint32_t flags);
+media_status_t AMediaCodec_queueInputBuffer(AMediaCodec*, size_t idx,
+                                            _off_t_compat offset, size_t size,
+                                            uint64_t time, uint32_t flags);
+
+/**
+ * Send the specified buffer to the codec for processing.
+ */
+media_status_t AMediaCodec_queueSecureInputBuffer(AMediaCodec*, size_t idx,
+                                                  _off_t_compat offset,
+                                                  AMediaCodecCryptoInfo*,
+                                                  uint64_t time, uint32_t flags);
+
+#undef _off_t_compat
 
 /**
  * Get the index of the next available buffer of processed data.
@@ -175,6 +208,80 @@ media_status_t AMediaCodec_setOutputSurface(AMediaCodec*, ANativeWindow* surface
  */
 media_status_t AMediaCodec_releaseOutputBufferAtTime(
         AMediaCodec *mData, size_t idx, int64_t timestampNs);
+
+#if __ANDROID_API__ >= 26
+
+/**
+ * Creates a Surface that can be used as the input to encoder, in place of input buffers
+ *
+ * This can only be called after the codec has been configured via
+ * AMediaCodec_configure(..); and before AMediaCodec_start() has been called.
+ *
+ * The application is responsible for releasing the surface by calling
+ * ANativeWindow_release() when done.
+ *
+ * For more details, see the Java documentation for MediaCodec.createInputSurface.
+ */
+media_status_t AMediaCodec_createInputSurface(
+        AMediaCodec *mData, ANativeWindow **surface);
+
+/**
+ * Creates a persistent Surface that can be used as the input to encoder
+ *
+ * Persistent surface can be reused by MediaCodec instances and can be set
+ * on a new instance via AMediaCodec_setInputSurface().
+ * A persistent surface can be connected to at most one instance of MediaCodec
+ * at any point in time.
+ *
+ * The application is responsible for releasing the surface by calling
+ * ANativeWindow_release() when done.
+ *
+ * For more details, see the Java documentation for MediaCodec.createPersistentInputSurface.
+ */
+media_status_t AMediaCodec_createPersistentInputSurface(
+        ANativeWindow **surface);
+
+/**
+ * Set a persistent-surface that can be used as the input to encoder, in place of input buffers
+ *
+ * The surface provided *must* be a persistent surface created via
+ * AMediaCodec_createPersistentInputSurface()
+ * This can only be called after the codec has been configured by calling
+ * AMediaCodec_configure(..); and before AMediaCodec_start() has been called.
+ *
+ * For more details, see the Java documentation for MediaCodec.setInputSurface.
+ */
+media_status_t AMediaCodec_setInputSurface(
+        AMediaCodec *mData, ANativeWindow *surface);
+
+/**
+ * Signal additional parameters to the codec instance.
+ *
+ * Parameters can be communicated only when the codec is running, i.e
+ * after AMediaCodec_start() has been called.
+ *
+ * NOTE: Some of these parameter changes may silently fail to apply.
+ */
+media_status_t AMediaCodec_setParameters(
+        AMediaCodec *mData, const AMediaFormat* params);
+
+/**
+ * Signals end-of-stream on input. Equivalent to submitting an empty buffer with
+ * AMEDIACODEC_BUFFER_FLAG_END_OF_STREAM set.
+ *
+ * Returns AMEDIA_ERROR_INVALID_OPERATION when used with an encoder not in executing state
+ * or not receiving input from a Surface created by AMediaCodec_createInputSurface or
+ * AMediaCodec_createPersistentInputSurface.
+ *
+ * Returns the previous codec error if one exists.
+ *
+ * Returns AMEDIA_OK when completed succesfully.
+ *
+ * For more details, see the Java documentation for MediaCodec.signalEndOfInputStream.
+ */
+media_status_t AMediaCodec_signalEndOfInputStream(AMediaCodec *mData);
+
+#endif /* __ANDROID_API__ >= 26 */
 
 typedef enum {
     AMEDIACODECRYPTOINFO_MODE_CLEAR = 0,
@@ -254,8 +361,8 @@ media_status_t AMediaCodecCryptoInfo_getClearBytes(AMediaCodecCryptoInfo*, size_
  */
 media_status_t AMediaCodecCryptoInfo_getEncryptedBytes(AMediaCodecCryptoInfo*, size_t *dst);
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+#endif /* __ANDROID_API__ >= 21 */
+
+__END_DECLS
 
 #endif //_NDK_MEDIA_CODEC_H

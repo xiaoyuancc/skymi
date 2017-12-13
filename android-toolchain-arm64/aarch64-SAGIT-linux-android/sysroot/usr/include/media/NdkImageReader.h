@@ -15,7 +15,7 @@
  */
 
 /**
- * @addtogroup Media Camera
+ * @addtogroup Media
  * @{
  */
 
@@ -36,19 +36,21 @@
 #ifndef _NDK_IMAGE_READER_H
 #define _NDK_IMAGE_READER_H
 
+#include <sys/cdefs.h>
+
 #include <android/native_window.h>
 #include "NdkMediaError.h"
 #include "NdkImage.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+__BEGIN_DECLS
 
 /**
  * AImage is an opaque type that allows direct application access to image data rendered into a
  * {@link ANativeWindow}.
  */
 typedef struct AImageReader AImageReader;
+
+#if __ANDROID_API__ >= 24
 
 /**
  * Create a new reader for images of the desired size and format.
@@ -66,7 +68,9 @@ typedef struct AImageReader AImageReader;
  * @param height The default height in pixels of the Images that this reader will produce.
  * @param format The format of the Image that this reader will produce. This must be one of the
  *            AIMAGE_FORMAT_* enum value defined in {@link AIMAGE_FORMATS}. Note that not all
- *            formats are supported, like {@link AIMAGE_FORMAT_PRIVATE}.
+ *            formats are supported. One example is {@link AIMAGE_FORMAT_PRIVATE}, as it is not
+ *            intended to be read by applications directly. That format is supported by
+ *            {@link AImageReader_newWithUsage} introduced in API 26.
  * @param maxImages The maximum number of images the user will want to access simultaneously. This
  *            should be as small as possible to limit memory use. Once maxImages Images are obtained
  *            by the user, one of them has to be released before a new {@link AImage} will become
@@ -294,9 +298,172 @@ typedef struct AImageReader_ImageListener {
 media_status_t AImageReader_setImageListener(
         AImageReader* reader, AImageReader_ImageListener* listener);
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+#endif /* __ANDROID_API__ >= 24 */
+
+#if __ANDROID_API__ >= 26
+
+/**
+ * AImageReader constructor similar to {@link AImageReader_new} that takes an additional parameter
+ * for the consumer usage. All other parameters and the return values are identical to those passed
+ * to {@line AImageReader_new}.
+ *
+ * <p>If the {@code format} is {@link AIMAGE_FORMAT_PRIVATE}, the created {@link AImageReader}
+ * will produce images whose contents are not directly accessible by the application. The application can
+ * still acquire images from this {@link AImageReader} and access {@link AHardwareBuffer} via
+ * {@link AImage_getHardwareBuffer()}. The {@link AHardwareBuffer} gained this way can then
+ * be passed back to hardware (such as GPU or hardware encoder if supported) for future processing.
+ * For example, you can obtain an {@link EGLClientBuffer} from the {@link AHardwareBuffer} by using
+ * {@link eglGetNativeClientBufferANDROID} extension and pass that {@link EGLClientBuffer} to {@link
+ * eglCreateImageKHR} to create an {@link EGLImage} resource type, which may then be bound to a
+ * texture via {@link glEGLImageTargetTexture2DOES} on supported devices. This can be useful for
+ * transporting textures that may be shared cross-process.</p>
+ * <p>In general, when software access to image data is not necessary, an {@link AImageReader}
+ * created with {@link AIMAGE_FORMAT_PRIVATE} format is more efficient, compared with {@link
+ * AImageReader}s using other format such as {@link AIMAGE_FORMAT_YUV_420_888}.</p>
+ *
+ * <p>Note that not all format and usage flag combination is supported by the {@link AImageReader},
+ * especially if {@code format} is {@link AIMAGE_FORMAT_PRIVATE}, {@code usage} must not include either
+ * {@link AHARDWAREBUFFER_USAGE_READ_RARELY} or {@link AHARDWAREBUFFER_USAGE_READ_OFTEN}</p>
+ *
+ * @param width The default width in pixels of the Images that this reader will produce.
+ * @param height The default height in pixels of the Images that this reader will produce.
+ * @param format The format of the Image that this reader will produce. This must be one of the
+ *            AIMAGE_FORMAT_* enum value defined in {@link AIMAGE_FORMATS}.
+ * @param usage specifies how the consumer will access the AImage, using combination of the
+ *            AHARDWAREBUFFER_USAGE flags described in {@link hardware_buffer.h}.
+ *            Passing {@link AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN} is equivalent to calling
+ *            {@link AImageReader_new} with the same parameters.
+ *
+ * Note that not all format and usage flag combination is supported by the {@link AImageReader}.
+ * Below are the combinations supported by the {@link AImageReader}.
+ * <table>
+ * <tr>
+ *   <th>Format</th>
+ *   <th>Compatible usage flags</th>
+ * </tr>
+ * <tr>
+ *   <td>non-{@link AIMAGE_FORMAT_PRIVATE PRIVATE} formats defined in {@link AImage.h}
+ * </td>
+ *   <td>{@link AHARDWAREBUFFER_USAGE_CPU_READ_RARELY} or
+ *   {@link AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN}</td>
+ * </tr>
+ * <tr>
+ *   <td>{@link AIMAGE_FORMAT_RGBA_8888}</td>
+ *   <td>{@link AHARDWAREBUFFER_USAGE_VIDEO_ENCODE} or
+ *   {@link AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE}, or combined</td>
+ * </tr>
+ * </table>
+ * @return <ul>
+ *         <li>{@link AMEDIA_OK} if the method call succeeds.</li>
+ *         <li>{@link AMEDIA_ERROR_INVALID_PARAMETER} if reader is NULL, or one or more of width,
+ *                 height, format, maxImages, or usage arguments is not supported.</li>
+ *         <li>{@link AMEDIA_ERROR_UNKNOWN} if the method fails for some other reasons.</li></ul>
+ *
+ * @see AImage
+ * @see AImageReader_new
+ * @see AHardwareBuffer
+ */
+media_status_t AImageReader_newWithUsage(
+        int32_t width, int32_t height, int32_t format, uint64_t usage, int32_t maxImages,
+        /*out*/ AImageReader** reader);
+
+/*
+ * Acquire the next {@link AImage} from the image reader's queue asynchronously.
+ *
+ * <p>AImageReader acquire method similar to {@link AImageReader_acquireNextImage} that takes an
+ * additional parameter for the sync fence. All other parameters and the return values are
+ * identical to those passed to {@link AImageReader_acquireNextImage}.</p>
+ *
+ * @param acquireFenceFd A sync fence fd defined in {@link sync.h}, which is used to signal when the
+ *         buffer is ready to consume. When synchronization fence is not needed, fence will be set
+ *         to -1 and the {@link AImage} returned is ready for use immediately. Otherwise, user shall
+ *         use syscalls such as {@code poll()}, {@code epoll()}, {@code select()} to wait for the
+ *         fence fd to change status before attempting to access the {@link AImage} returned.
+ *
+ * @see sync.h
+ * @see sync_get_fence_info
+ */
+media_status_t AImageReader_acquireNextImageAsync(
+        AImageReader* reader, /*out*/AImage** image, /*out*/int* acquireFenceFd);
+
+/*
+ * Acquire the latest {@link AImage} from the image reader's queue asynchronously, dropping older
+ * images.
+ *
+ * <p>AImageReader acquire method similar to {@link AImageReader_acquireLatestImage} that takes an
+ * additional parameter for the sync fence. All other parameters and the return values are
+ * identical to those passed to {@link AImageReader_acquireLatestImage}.</p>
+ *
+ * @param acquireFenceFd A sync fence fd defined in {@link sync.h}, which is used to signal when the
+ *         buffer is ready to consume. When synchronization fence is not needed, fence will be set
+ *         to -1 and the {@link AImage} returned is ready for use immediately. Otherwise, user shall
+ *         use syscalls such as {@code poll()}, {@code epoll()}, {@code select()} to wait for the
+ *         fence fd to change status before attempting to access the {@link AImage} returned.
+ *
+ * @see sync.h
+ * @see sync_get_fence_info
+ */
+media_status_t AImageReader_acquireLatestImageAsync(
+        AImageReader* reader, /*out*/AImage** image, /*out*/int* acquireFenceFd);
+/**
+ * The definition of {@link AImageReader} buffer removed callback.
+ *
+ * @param context The optional application context provided by user in
+ *                {@link AImageReader_setBufferRemovedListener}.
+ * @param reader The {@link AImageReader} of interest.
+ * @param buffer The {@link AHardwareBuffer} that is being removed from this image reader.
+ */
+typedef void (*AImageReader_BufferRemovedCallback)(void* context,
+        AImageReader* reader,
+        AHardwareBuffer* buffer);
+
+typedef struct AImageReader_BufferRemovedListener {
+    /// optional application context.
+    void*                      context;
+
+    /**
+     * This callback is called when an old {@link AHardwareBuffer} is about to be removed from the
+     * image reader.
+     *
+     * <p>Note that registering this callback is optional unless the user holds on extra reference
+     * to {@link AHardwareBuffer} returned from {@link AImage_getHardwareBuffer} by calling {@link
+     * AHardwareBuffer_acquire} or creating external graphic objects, such as EglImage, from it.</p>
+     *
+     * <p>If the callback is registered, the {@link AImageReader} will hold on the last of its
+     * references to the {@link AHardwareBuffer} until this callback returns. User can use the
+     * callback to get notified that it becomes the last owner of the buffer. It is up to the user
+     * to decide to either 1) immediately release all of its references to the buffer; or 2) keep
+     * using the buffer and release it in future. Note that, if option 2 if used, user of this API
+     * is responsible to deallocate the buffer properly by calling {@link AHardwareBuffer_release}.
+     * </p>
+     *
+     * @see AHardwareBuffer_release
+     * @see AImage_getHardwareBuffer
+     */
+    AImageReader_BufferRemovedCallback onBufferRemoved;
+} AImageReader_BufferRemovedListener;
+
+/**
+ * Set the onBufferRemoved listener of this image reader.
+ *
+ * <p>Note that calling this method will replace previously registered listeners.</p>
+ *
+ * @param reader The image reader of interest.
+ * @param listener the {@link AImageReader_BufferRemovedListener} to be registered. Set this to
+ * NULL if application no longer needs to listen to buffer removed events.
+ *
+ * @return <ul>
+ *         <li>{@link AMEDIA_OK} if the method call succeeds.</li>
+ *         <li>{@link AMEDIA_ERROR_INVALID_PARAMETER} if reader is NULL.</li></ul>
+ *
+ * @see AImage_getHardwareBuffer
+ */
+media_status_t AImageReader_setBufferRemovedListener(
+        AImageReader* reader, AImageReader_BufferRemovedListener* listener);
+
+#endif /* __ANDROID_API__ >= 26 */
+
+__END_DECLS
 
 #endif //_NDK_IMAGE_READER_H
 
