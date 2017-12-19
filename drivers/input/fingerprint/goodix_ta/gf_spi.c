@@ -56,6 +56,9 @@
 #define VER_MINOR   2
 #define PATCH_LEVEL 1
 
+/* Unused key value to avoid interfering with active keys */
+#define KEY_FINGERPRINT 0x2ee
+
 #define GF_SPIDEV_NAME     "goodix,fingerprint"
 /*device name after register in charater*/
 #define GF_DEV_NAME            "goodix_fp"
@@ -489,10 +492,19 @@ static long gf_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long a
 
 static irqreturn_t gf_irq(int irq, void *handle)
 {
+	struct gf_dev *gf_dev = handle;
 #if defined(GF_NETLINK_ENABLE)
 	char temp[4] = { 0x0 };
 	temp[0] = GF_NET_EVENT_IRQ;
-	wake_lock_timeout(&fp_wakelock, msecs_to_jiffies(2*1000));
+	if (gf_dev->fb_black) {
+		wake_lock_timeout(&fp_wakelock, msecs_to_jiffies(2*1000));
+		
+		/* Report button input to trigger CPU boost */
+		input_report_key(gf_dev->input, KEY_FINGERPRINT, 1);
+		input_sync(gf_dev->input);
+		input_report_key(gf_dev->input, KEY_FINGERPRINT, 0);
+		input_sync(gf_dev->input);
+	}
 	sendnlmsg(temp);
 #elif defined (GF_FASYNC)
 	struct gf_dev *gf_dev = &gf;
