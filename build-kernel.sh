@@ -126,8 +126,22 @@ BUILD_NOW()
 	fi;
 }
 
-BUILD_NOW "boot";
-BUILD_NOW "boot-eu";
+
+echo "What to cook for you?!";
+select CHOICE in CN EU ALL; do
+	case "$CHOICE" in
+		"CN")
+			BUILD_NOW "boot";
+			break;;
+		"EU")
+			BUILD_NOW "boot-eu";
+			break;;
+		"ALL")
+			BUILD_NOW "boot";
+			BUILD_NOW "boot-eu";
+			break;;
+	esac;
+done;
 
 
 
