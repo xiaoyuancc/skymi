@@ -2,6 +2,7 @@
 clear
 
 LANG=C
+VERSION="V1.6"
 
 # What you need installed to compile
 # gcc, gpp, cpp, c++, g++, lzma, lzop, ia32-libs flex
@@ -16,23 +17,25 @@ KERNELDIR=$(readlink -f .);
 
 KERNEL_CONFIG_FILE=sagit_user_defconfig;
 
-echo "Initialising................."
-if [ -e "$KERNELDIR"/mkbootimg_tools/boot/kernel ]; then
-	rm "$KERNELDIR"/mkbootimg_tools/boot/kernel;
-fi;
-if [ -e "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/wlan.ko ]; then
-	rm "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/*.ko;
-fi;
-if [ -e "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb ]; then
-	rm "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
-fi;
-
-if [ -e "$KERNELDIR"/READY-KERNEL/boot.img ]; then
-	rm "$KERNELDIR"/READY-KERNEL/boot.img;
-fi;
-
 BUILD_NOW()
 {
+	MODEL=$1
+	echo "Initialising................."
+	echo "Building for ${MODEL}"
+	if [ -e "$KERNELDIR"/mkbootimg_tools/$MODEL/kernel ]; then
+		rm "$KERNELDIR"/mkbootimg_tools/$MODEL/kernel;
+	fi;
+	if [ -e "$KERNELDIR"/mkbootimg_tools/$MODEL/ramdisk/crk_modules/wlan.ko ]; then
+		rm "$KERNELDIR"/mkbootimg_tools/$MODEL/ramdisk/crk_modules/*.ko;
+	fi;
+	if [ -e "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb ]; then
+		rm "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
+	fi;
+
+	if [ -e "$KERNELDIR"/READY-KERNEL/boot.img ]; then
+		rm "$KERNELDIR"/READY-KERNEL/boot.img;
+	fi;
+
 	PYTHON_CHECK=$(ls -la /usr/bin/python | grep python3 | wc -l);
 	PYTHON_WAS_3=0;
 
@@ -82,14 +85,14 @@ BUILD_NOW()
 		# move the compiled Image.gz-dtb and modules into the READY-KERNEL working directory
 		echo "Move compiled objects........"
 
-		cp "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb mkbootimg_tools/boot/kernel;
+		cp "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb mkbootimg_tools/$MODEL/kernel;
 
 		for i in $(find "$KERNELDIR" -name '*.ko'); do
 			$STRIP -g "$i"
-			cp -av "$i" "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/;
+			cp -av "$i" "$KERNELDIR"/mkbootimg_tools/$MODEL/ramdisk/crk_modules/;
 		done;
 
-		chmod 644 "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/*.ko
+		chmod 644 "$KERNELDIR"/mkbootimg_tools/$MODEL/ramdisk/crk_modules/*.ko
 
 		if [ "$PYTHON_WAS_3" -eq "1" ]; then
 			rm /usr/bin/python
@@ -98,19 +101,19 @@ BUILD_NOW()
 
 		sync
 
-		cd "$KERNELDIR"/mkbootimg_tools; 
+		pushd "$KERNELDIR"/mkbootimg_tools;
+		"$KERNELDIR"/mkbootimg_tools/mkboot $MODEL "Kernel-Unknown-${VERSION}-Nougat-""${MODEL}".img;
+		popd;
 
-		"$KERNELDIR"/mkbootimg_tools/mkboot boot boot2.img
-
-		cp "$KERNELDIR"/mkbootimg_tools/boot2.img "$KERNELDIR"/READY-KERNEL/boot.img
-		cd "$KERNELDIR"/READY-KERNEL;
-		zip -r Kernel-SAGIT-T-"$(date +"[%H-%M]-[%d-%m]-N")".zip * >/dev/null
-		mv *.zip "$KERNELDIR"/
+		#cp "$KERNELDIR"/mkbootimg_tools/boot2.img "$KERNELDIR"/READY-KERNEL/boot.img
+		#cd "$KERNELDIR"/READY-KERNEL;
+		#zip -r Kernel-SAGIT-T-"$(date +"[%H-%M]-[%d-%m]-N")".zip * >/dev/null
+		#mv *.zip "$KERNELDIR"/
 
 		echo "Cleaning";
 		rm "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
-		rm -rf "$KERNELDIR"/mkbootimg_tools/boot/kernel;
-		rm -rf "$KERNELDIR"/mkbootimg_tools/boot/ramdisk/crk_modules/*.ko;
+		rm -rf "$KERNELDIR"/mkbootimg_tools/$MODEL/kernel;
+		rm -rf "$KERNELDIR"/mkbootimg_tools/$MODEL/ramdisk/crk_modules/*.ko;
 		echo "All Done";
 	else
 		if [ "$PYTHON_WAS_3" -eq "1" ]; then
@@ -123,7 +126,8 @@ BUILD_NOW()
 	fi;
 }
 
-BUILD_NOW;
+BUILD_NOW "boot";
+BUILD_NOW "boot-eu";
 
 
 
