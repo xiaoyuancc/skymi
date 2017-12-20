@@ -71,30 +71,31 @@ static int fb_notifier_callback(struct notifier_block *nb,
 	int *blank = evdata->data;
 
 	/* Parse framebuffer events as soon as they occur */
-	if (action != FB_EARLY_EVENT_BLANK)
+	if (action != FB_EVENT_BLANK)
 		return NOTIFY_OK;
 
 	switch (*blank) {
-	case FB_BLANK_UNBLANK:
-		/*
-		 * Switch back from noop to the original iosched after a delay
-		 * when the screen is turned on.
-		 */
-		if (delayed_work_pending(&sleep_sched))
-			cancel_delayed_work_sync(&sleep_sched);
-		schedule_delayed_work(&restore_prev,
-				msecs_to_jiffies(RESTORE_DELAY_MS));
-		break;
-	default:
-		/*
-		 * Switch to noop when the screen turns off. Purposely block
-		 * the fb notifier chain call in case weird things can happen
-		 * when switching elevators while the screen is off.
-		 */
-		if (delayed_work_pending(&restore_prev))
-			cancel_delayed_work_sync(&restore_prev);
-		schedule_delayed_work(&sleep_sched,
-				msecs_to_jiffies(RESTORE_DELAY_MS));
+		case FB_BLANK_UNBLANK:
+			/*
+			* Switch back from noop to the original iosched after a delay
+			* when the screen is turned on.
+			*/
+			if (delayed_work_pending(&sleep_sched))
+				cancel_delayed_work_sync(&sleep_sched);
+			schedule_delayed_work(&restore_prev,
+					msecs_to_jiffies(RESTORE_DELAY_MS));
+			break;
+		case FB_BLANK_POWERDOWN:
+			/*
+			* Switch to noop when the screen turns off. Purposely block
+			* the fb notifier chain call in case weird things can happen
+			* when switching elevators while the screen is off.
+			*/
+			if (delayed_work_pending(&restore_prev))
+				cancel_delayed_work_sync(&restore_prev);
+			schedule_delayed_work(&sleep_sched,
+					msecs_to_jiffies(RESTORE_DELAY_MS));
+			break;
 	}
 
 	return NOTIFY_OK;
