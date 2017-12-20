@@ -571,7 +571,7 @@ static int fb_notifier_callback(struct notifier_block *self, unsigned long event
 	struct fb_event *evdata = data;
 	int *blank = evdata->data;
 
-	if (event != FB_EARLY_EVENT_BLANK)
+	if (event != FB_EVENT_BLANK)
 		return 0;
 
 	if (*blank == FB_BLANK_UNBLANK) {
