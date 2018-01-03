@@ -1731,12 +1731,12 @@ enum Tfa98xx_Error tfaContWriteProfile(int dev_idx, int prof_idx, int vstep_idx)
 				tries = 0;
 				err = tfa98xx_powerdown(dev_idx, 1);
 				TFA_SET_BF_VOLATILE(dev_idx, AMPE, 0);
-				pr_info("tfaContWriteProfile   after performed tfa98xx_powerdown\n");
+				pr_debug("tfaContWriteProfile   after performed tfa98xx_powerdown\n");
 
 				do {
 					int manstate = TFA_GET_BF(dev_idx, MANSTATE);
 
-					pr_info("tfaContWriteProfile   manstate=%d\n", manstate);
+					pr_debug("tfaContWriteProfile   manstate=%d\n", manstate);
 					if (manstate == 0x0a) {
 						msleep_interruptible(5);
 					} else if (manstate == 6) {
@@ -1744,7 +1744,7 @@ enum Tfa98xx_Error tfaContWriteProfile(int dev_idx, int prof_idx, int vstep_idx)
 					} else if ((manstate == 0) || (manstate == 1)) {
 						/* SL: TFA powered down and already in stanby profile */
 						TFA_SET_BF_VOLATILE(dev_idx, SBSL, 0);
-						pr_info("tfaContWriteProfile   after SBSL set to 0 in do...while()\n");
+						pr_debug("tfaContWriteProfile   after SBSL set to 0 in do...while()\n");
 						return err;
 					}
 					tries++;
@@ -1752,7 +1752,7 @@ enum Tfa98xx_Error tfaContWriteProfile(int dev_idx, int prof_idx, int vstep_idx)
 			} else {/* SL: If not .standby profile then power up device*/
 				if (TFA_GET_BF(dev_idx, CFE) != 0) {
 					if (TFA_GET_BF(dev_idx, REFCKSEL) == 0) {
-						pr_info("tfaContWriteProfile   will be performed TFA_SET_BF(dev_idx, REFCKSEL, 1)\n");
+						pr_debug("tfaContWriteProfile   will be performed TFA_SET_BF(dev_idx, REFCKSEL, 1)\n");
 						TFA_SET_BF(dev_idx, REFCKSEL, 1);
 						TFA_SET_BF(dev_idx, AMPE, 0);
 					}
@@ -1824,7 +1824,7 @@ enum Tfa98xx_Error tfaContWriteProfile(int dev_idx, int prof_idx, int vstep_idx)
 						k++;
 					}
 					file = (nxpTfaFileDsc_t *)(previous_prof->list[i].offset+(uint8_t *)g_cont);
-					pr_info("tfaContWriteProfile()	   will be calling tfaContWriteFile()\n");
+					pr_debug("tfaContWriteProfile()	   will be calling tfaContWriteFile()\n");
 					err = tfaContWriteFile(dev_idx,  file, vstep_idx, TFA_MAX_VSTEP_MSG_MARKER);
 					if (Tfa98xx_Error_Ok != err)
 						pr_err("tfaContWriteProfile()	  tfaContWriteFile	error(%d)\n", err);
@@ -1837,7 +1837,7 @@ enum Tfa98xx_Error tfaContWriteProfile(int dev_idx, int prof_idx, int vstep_idx)
 		pr_debug("---------- files new profile: %s (%d) ----------\n",
 				tfaContGetString(&prof->name), prof_idx);
 	}
-	pr_info("tfaContWriteProfile()	  start writing files");
+	pr_debug("tfaContWriteProfile()	  start writing files");
 
 	/* write everything until end or the default section starts
 	 * Start where we currenly left */

@@ -436,7 +436,7 @@ struct apr_svc *apr_register(char *dest, char *svc_name, apr_fn svc_fn,
 	if (!dest || !svc_name || !svc_fn)
 		return NULL;
 
-	pr_err("%s: enter\n", __func__);
+	pr_debug("%s: enter\n", __func__);
 	if (!strcmp(dest, "ADSP"))
 		domain_id = APR_DOMAIN_ADSP;
 	else if (!strcmp(dest, "MODEM")) {
@@ -482,7 +482,7 @@ struct apr_svc *apr_register(char *dest, char *svc_name, apr_fn svc_fn,
 	}
 
 	clnt = &client[dest_id][client_id];
-	pr_err("%s: apr client handle[%p]\n", __func__, clnt->handle);
+	pr_debug("%s: apr client handle[%p]\n", __func__, clnt->handle);
 	mutex_lock(&clnt->m_lock);
 	if (!clnt->handle && can_open_channel) {
 		clnt->handle = apr_tal_open(client_id, dest_id,
@@ -493,7 +493,7 @@ struct apr_svc *apr_register(char *dest, char *svc_name, apr_fn svc_fn,
 			mutex_unlock(&clnt->m_lock);
 			goto done;
 		}
-		pr_err("%s: done apr_tal_open. apr client handle[%p]\n", __func__, clnt->handle);
+		pr_debug("%s: done apr_tal_open. apr client handle[%p]\n", __func__, clnt->handle);
 	}
 	mutex_unlock(&clnt->m_lock);
 	svc = &clnt->svc[svc_idx];
@@ -510,7 +510,7 @@ struct apr_svc *apr_register(char *dest, char *svc_name, apr_fn svc_fn,
 	svc->dest_domain = domain_id;
 	svc->pkt_owner = APR_PKT_OWNER_DRIVER;
 
-	pr_err("%s: svc_name = %s, src_port = 0x%x, clnt->svc_cnt = %d, svc->port_cnt = %d, svc->svc_cnt = %d\n",
+	pr_debug("%s: svc_name = %s, src_port = 0x%x, clnt->svc_cnt = %d, svc->port_cnt = %d, svc->svc_cnt = %d\n",
 		__func__, svc_name, src_port, clnt->svc_cnt,
 		svc->port_cnt, svc->svc_cnt);
 	if (src_port != 0xFFFFFFFF) {
@@ -536,7 +536,7 @@ struct apr_svc *apr_register(char *dest, char *svc_name, apr_fn svc_fn,
 			svc->svc_cnt++;
 		}
 	}
-	pr_err("%s: clnt->svc_cnt = %d, svc->port_cnt = %d, svc->svc_cnt = %d\n",
+	pr_debug("%s: clnt->svc_cnt = %d, svc->port_cnt = %d, svc->svc_cnt = %d\n",
 		__func__, clnt->svc_cnt, svc->port_cnt, svc->svc_cnt);
 
 	mutex_unlock(&svc->m_lock);

@@ -212,7 +212,7 @@ static enum tfa_error tfa98xx_tfa_start(struct tfa98xx *tfa98xx, int next_profil
 {
 	enum tfa_error err;
 
-	pr_info("tfa98xx_tfa_start()   begin   next_profile=%d\n", next_profile);
+	pr_debug("tfa98xx_tfa_start()   begin   next_profile=%d\n", next_profile);
 	tfa98xx_dump_register(tfa98xx, 1, "tfa98xx_tfa_start begin");
 	err = tfa_start(next_profile, vstep);
 

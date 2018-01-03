@@ -123,7 +123,7 @@ struct tfa98xx {
 };
 
 #if defined(CONFIG_TRACING) && defined(DEBUG)
-	#define tfa98xx_trace_printk(...) trace_printk(__VA_ARGS__)
+	#define tfa98xx_trace_printk(...) pr_debug(__VA_ARGS__)
 #else
 	#define tfa98xx_trace_printk(...)
 #endif

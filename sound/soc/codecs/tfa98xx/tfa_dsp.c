@@ -2416,47 +2416,47 @@ enum Tfa98xx_Error show_current_state(Tfa98xx_handle_t handle)
 			return -manstate;
 	}
 
-	pr_info("Current HW manager state: ");
+	pr_debug("Current HW manager state: ");
 
 	switch (manstate) {
 	case 0:
-		pr_info("power_down_state\n");
+		pr_debug("power_down_state\n");
 		break;
 	case 1:
-		pr_info("wait_for_source_settings_state\n");
+		pr_debug("wait_for_source_settings_state\n");
 		break;
 	case 2:
-		pr_info("connnect_pll_input_state\n");
+		pr_debug("connnect_pll_input_state\n");
 		break;
 	case 3:
-		pr_info("disconnect_pll_input_state\n");
+		pr_debug("disconnect_pll_input_state\n");
 		break;
 	case 4:
-		pr_info("enable_pll_state\n");
+		pr_debug("enable_pll_state\n");
 		break;
 	case 5:
-		pr_info("enable_cgu_state\n");
+		pr_debug("enable_cgu_state\n");
 		break;
 	case 6:
-		pr_info("init_cf_state\n");
+		pr_debug("init_cf_state\n");
 		break;
 	case 7:
-		pr_info("enable_amplifier_state\n");
+		pr_debug("enable_amplifier_state\n");
 		break;
 	case 8:
-		pr_info("alarm_state\n");
+		pr_debug("alarm_state\n");
 		break;
 	case 9:
-		pr_info("operating_state\n");
+		pr_debug("operating_state\n");
 		break;
 	case 10:
-		pr_info("mute_audio_state\n");
+		pr_debug("mute_audio_state\n");
 		break;
 	case 11:
-		pr_info("disable_cgu_pll_state\n");
+		pr_debug("disable_cgu_pll_state\n");
 		break;
 	default:
-		pr_info("Unable to find current state\n");
+		pr_debug("Unable to find current state\n");
 		break;
 	}
 
@@ -2901,18 +2901,18 @@ enum Tfa98xx_Error tfaRunUnmute(Tfa98xx_handle_t handle)
 			return err;
 		} else {
 			if ((TFA_GET_BF(handle, REFCKSEL) == 1) && (TFA_GET_BF(handle, MANSTATE) == 6)) {
-				pr_info("tfaUnmute() MANSCONF and MANCOLD will be switching to external clock\n");
+				pr_debug("tfaUnmute() MANSCONF and MANCOLD will be switching to external clock\n");
 				TFA_SET_BF_VOLATILE(handle, MANSCONF, 0);
 				TFA_SET_BF_VOLATILE(handle, RST, 1);
 				TFA_SET_BF_VOLATILE(handle, MANCOLD, 1);
 				/* set ACS=0 to avoid DSP think it's real cold start */
 				err = tfaRunColdboot(handle, 0);
 				TFA_SET_BF_VOLATILE(handle, SBSL, 1);
-				pr_info("tfaUnmute()  SBSL=1  switching to external clock\n");
+				pr_debug("tfaUnmute()  SBSL=1  switching to external clock\n");
 				TFA_SET_BF_VOLATILE(handle, REFCKSEL, 0);
 				TFA_SET_BF_VOLATILE(handle, RST, 0);
 				TFA_SET_BF_VOLATILE(handle, SBSL, 0);
-				pr_info("tfaUnmute() REFCKSEL=0  SBSL=0 switched to external clock\n");
+				pr_debug("tfaUnmute() REFCKSEL=0  SBSL=0 switched to external clock\n");
 			}
 		}
 
@@ -2923,7 +2923,7 @@ enum Tfa98xx_Error tfaRunUnmute(Tfa98xx_handle_t handle)
 				break;
 			}
 			retry++;
-			pr_info("tfaUnmute() MANSTATE %d, retry times %d\n", manstate, retry);
+			pr_debug("tfaUnmute() MANSTATE %d, retry times %d\n", manstate, retry);
 			udelay(300);
 		} while (retry < 10);
 
@@ -2940,7 +2940,7 @@ enum Tfa98xx_Error tfaRunUnmute(Tfa98xx_handle_t handle)
 	}
 
 	/* if (tfa98xx_runtime_verbose) */
-		pr_info("-------------------unmuted ------------------\n");
+	pr_debug("-------------------unmuted ------------------\n");
 
 	return err;
 }
@@ -3032,7 +3032,7 @@ enum tfa_error tfa_start(int next_profile, int *vstep)
 	}
 
 	for (dev = 0; dev < devcount; dev++) {
-		pr_info("tfa_start()    dev=%d    will perform tfaContOpen()\n", dev);
+		pr_debug("tfa_start()    dev=%d    will perform tfaContOpen()\n", dev);
 		err = tfaContOpen(dev);
 		if (err != Tfa98xx_Error_Ok) {
 			pr_err("tfa_start()	   tfaContOpen error(%d)\n", err);
@@ -3041,7 +3041,7 @@ enum tfa_error tfa_start(int next_profile, int *vstep)
 
 		/* Get currentprofile */
 		active_profile = tfa_get_swprof(dev);
-		pr_info("tfa_start()	   tfa_get_swprof active_profile(%d)\n", active_profile);
+		pr_debug("tfa_start()	   tfa_get_swprof active_profile(%d)\n", active_profile);
 		if (active_profile == 0xff)
 			active_profile = -1;
 
@@ -3049,7 +3049,7 @@ enum tfa_error tfa_start(int next_profile, int *vstep)
 		 * Only if the user did not give a specific profile and coldstart
 		 */
 		if (active_profile == -1 && next_profile < 1) {
-			pr_info("tfa_start()    will perform tfaContGetCalProfile()\n");
+			pr_debug("tfa_start()    will perform tfaContGetCalProfile()\n");
 			cal_profile = tfaContGetCalProfile(dev);
 			if (cal_profile >= 0)
 				next_profile = cal_profile;
@@ -3070,7 +3070,7 @@ enum tfa_error tfa_start(int next_profile, int *vstep)
 		}
 
 		/* enable I2S output on TFA1 devices without TDM */
-		pr_info("tfa_start()    will perform tfa98xx_aec_output()\n");
+		pr_debug("tfa_start()    will perform tfa98xx_aec_output()\n");
 		err = tfa98xx_aec_output(dev, 1);
 		if (err != Tfa98xx_Error_Ok) {
 			pr_err("tfa_start()	   tfa98xx_aec_output error(%d)\n", err);
@@ -3079,7 +3079,7 @@ enum tfa_error tfa_start(int next_profile, int *vstep)
 		tfa98xx_dump_register(getHandle(dev), 2, "tfa_start after tfa98xx_aec_output");
 
 		/* Check if we need coldstart or ACS is set */
-		pr_info("tfa_start()    will perform tfaRunSpeakerBoost()\n");
+		pr_debug("tfa_start()    will perform tfaRunSpeakerBoost()\n");
 		err = tfaRunSpeakerBoost(dev, 0, next_profile);
 		show_current_state(dev);
 		if (err != Tfa98xx_Error_Ok) {
@@ -3102,7 +3102,7 @@ enum tfa_error tfa_start(int next_profile, int *vstep)
 		if ((next_profile != active_profile && active_profile != -1)
 		       || (istap_prof == 1)) {
 			tfa98xx_dump_register(getHandle(dev), 2, "tfa_start before tfaContWriteProfile");
-			pr_info("tfa_start()	will perform tfaContWriteProfile()\n");
+			pr_debug("tfa_start()	will perform tfaContWriteProfile()\n");
 			err = tfaContWriteProfile(dev, next_profile, vstep[dev]);
 			if (err != Tfa98xx_Error_Ok) {
 				pr_err("tfa_start()	   tfaContWriteProfile error(%d)\n", err);
@@ -3110,7 +3110,7 @@ enum tfa_error tfa_start(int next_profile, int *vstep)
 			}
 		}
 
-		pr_info("tfa_start()	after performed tfaContWriteProfile()\n");
+		pr_debug("tfa_start()	after performed tfaContWriteProfile()\n");
 		/* If the profile contains the .standby suffix go to powerdown
 		 * else we should be in operating state
 		 */
