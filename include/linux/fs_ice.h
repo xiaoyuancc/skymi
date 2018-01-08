@@ -21,17 +21,14 @@
 
 #ifdef CONFIG_FS_ICE_ENCRYPTION
 
-bool fscrypt_encrypted_inode(struct inode *inode);
-
-int fscrypt_using_hardware_encryption(struct inode *inode);
-
+int fscrypt_using_hardware_encryption(const struct inode *inode);
 
 static inline int fscrypt_should_be_processed_by_ice(const struct inode *inode)
 {
-	if (!fscrypt_encrypted_inode((struct inode *)inode))
+	if (!IS_ENCRYPTED(inode))
 		return 0;
 
-	return fscrypt_using_hardware_encryption((struct inode *)inode);
+	return fscrypt_using_hardware_encryption(inode);
 }
 
 static inline int fscrypt_is_ice_enabled(void)
@@ -42,6 +39,7 @@ static inline int fscrypt_is_ice_enabled(void)
 int fscrypt_is_aes_xts_cipher(const struct inode *inode);
 
 char *fscrypt_get_ice_encryption_key(const struct inode *inode);
+
 char *fscrypt_get_ice_encryption_salt(const struct inode *inode);
 
 int fscrypt_is_ice_encryption_info_equal(const struct inode *inode1,

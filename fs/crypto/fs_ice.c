@@ -13,12 +13,12 @@
 #include <linux/fs_ice.h>
 #include "fscrypt_private.h"
 
-inline struct fscrypt_info *fscrypt_encryption_info(struct inode *inode)
+inline struct fscrypt_info *fscrypt_encryption_info(const struct inode *inode)
 {
 	return inode->i_crypt_info;
 }
 
-inline int fscrypt_using_hardware_encryption(struct inode *inode)
+inline int fscrypt_using_hardware_encryption(const struct inode *inode)
 {
 	struct fscrypt_info *ci = fscrypt_encryption_info(inode);
 
@@ -36,7 +36,7 @@ char *fscrypt_get_ice_encryption_key(const struct inode *inode)
 	if (!inode)
 		return NULL;
 
-	ci = fscrypt_encryption_info((struct inode *)inode);
+	ci = fscrypt_encryption_info(inode);
 	if (!ci)
 		return NULL;
 
@@ -53,7 +53,7 @@ char *fscrypt_get_ice_encryption_salt(const struct inode *inode)
 	if (!inode)
 		return NULL;
 
-	ci = fscrypt_encryption_info((struct inode *)inode);
+	ci = fscrypt_encryption_info(inode);
 	if (!ci)
 		return NULL;
 
@@ -67,7 +67,7 @@ int fscrypt_is_aes_xts_cipher(const struct inode *inode)
 {
 	struct fscrypt_info *ci = NULL;
 
-	ci = fscrypt_encryption_info((struct inode *)inode);
+	ci = fscrypt_encryption_info(inode);
 	if (!ci)
 		return 0;
 

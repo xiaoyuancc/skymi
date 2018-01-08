@@ -30,13 +30,6 @@
 #include "trace.h"
 #include <trace/events/f2fs.h>
 
-/**
- * todo move to fs/crypto
- **/
-inline bool fscrypt_encrypted_inode(struct inode *inode) { 
-	return f2fs_encrypted_inode(inode);
-}
-
 static bool __is_cp_guaranteed(struct page *page)
 {
 	struct address_space *mapping = page->mapping;
