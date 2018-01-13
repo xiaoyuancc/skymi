@@ -34,8 +34,6 @@ static bool enable_wlan_extscan_wl_ws = false;
 module_param(enable_wlan_extscan_wl_ws, bool, 0644);
 static bool enable_wlan_wow_wl_ws = false;
 module_param(enable_wlan_wow_wl_ws, bool, 0644);
-static bool enable_bluedroid_timer_ws = false;
-module_param(enable_bluedroid_timer_ws, bool, 0644);
 static bool enable_ipa_ws = false;
 module_param(enable_ipa_ws, bool, 0644);
 static bool enable_wlan_ws = false;
@@ -46,14 +44,10 @@ static bool enable_netlink_ws = false;
 module_param(enable_netlink_ws, bool, 0644);
 static bool enable_netmgr_wl_ws = false;
 module_param(enable_netmgr_wl_ws, bool, 0644);
-static bool enable_bluetooth_timer_ws = false;
-module_param(enable_bluetooth_timer_ws, bool, 0644);
 static bool enable_wcnss_filter_lock_ws = false;
 module_param(enable_wcnss_filter_lock_ws, bool, 0644);
 static bool enable_alarmtimer_ws = false;
 module_param(enable_alarmtimer_ws, bool, 0644);
-static bool enable_fpc_ttw_wl_ws = false;
-module_param(enable_fpc_ttw_wl_ws, bool, 0644);
 
 /*
  * If set, the suspend/hibernate code will abort transitions to a sleep state
@@ -609,28 +603,22 @@ static bool wakeup_source_blocker(struct wakeup_source *ws)
 				!strncmp(ws->name, "qcom_rx_wakelock", wslen)) ||
 			(!enable_wlan_ws &&
 				!strncmp(ws->name, "wlan", wslen)) ||
-			(!enable_timerfd_ws &&
-				!strncmp(ws->name, "[timerfd]", wslen)) ||
-			(!enable_netlink_ws &&
-				!strncmp(ws->name, "NETLINK", wslen)) ||
+			(!enable_timerfd_ws && wslen >= 9 &&
+				!strncmp(ws->name, "[timerfd]", 9)) ||
+			(!enable_netlink_ws && wslen >= 7 &&
+				!strncmp(ws->name, "NETLINK", 7)) ||
 			(!enable_netmgr_wl_ws &&
 				!strncmp(ws->name, "netmgr_wl", wslen)) ||
 			(!enable_wlan_wake_ws &&
 				!strncmp(ws->name, "wlan_wake", wslen)) ||
 			(!enable_wlan_rx_wake_ws &&
 				!strncmp(ws->name, "wlan_rx_wake", wslen)) ||
-			(!enable_bluedroid_timer_ws &&
-				!strncmp(ws->name, "bluedroid_timer", wslen)) ||
-			(!enable_bluetooth_timer_ws &&
-				!strncmp(ws->name, "bluetooth_timer", wslen)) ||
 			(!enable_wcnss_filter_lock_ws &&
 				!strncmp(ws->name, "wcnss_filter_lock", wslen)) ||
 			(!enable_wlan_wow_wl_ws &&
-            			!strncmp(ws->name, "wlan_wow_wl", wslen)) ||
-		    	(!enable_alarmtimer_ws &&
-            			!strncmp(ws->name, "alarmtimer", wslen)) ||
-			(!enable_fpc_ttw_wl_ws &&
-            			!strncmp(ws->name, "fpc_ttw_wl", wslen)) ||
+            	!strncmp(ws->name, "wlan_wow_wl", wslen)) ||
+		    (!enable_alarmtimer_ws &&
+            	!strncmp(ws->name, "alarmtimer", wslen)) ||
 			(!enable_wlan_ctrl_wake_ws &&
 				!strncmp(ws->name, "wlan_ctrl_wake", wslen))) {
 			if (ws->active) {
