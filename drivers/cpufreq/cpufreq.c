@@ -688,24 +688,7 @@ static ssize_t store_##file_name					\
 	return ret ? ret : count;					\
 }
 
-static ssize_t store_scaling_min_freq 
-(struct cpufreq_policy *policy, const char *buf, size_t count)
-{
-	int ret, temp;
-	struct cpufreq_policy new_policy;
-
-	memcpy(&new_policy, policy, sizeof(*policy));			
-
-	new_policy.min=300000;
-
-	temp = new_policy.min;
-	ret = cpufreq_set_policy(policy, &new_policy);
-	if (!ret)
-		policy->user_policy.min = temp;
-
-	return ret ? ret : count;
-}
-//store_one(scaling_min_freq, min);
+store_one(scaling_min_freq, min);
 store_one(scaling_max_freq, max);
 
 /**
