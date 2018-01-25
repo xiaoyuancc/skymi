@@ -30,7 +30,7 @@ static const int async_read_expire = 250;	/* ditto for read async, these limits 
 static const int async_write_expire = 450;	/* ditto for write async, these limits are SOFT! */
 static const int fifo_batch = 16;		/* # of sequential requests treated as one by the above parameters. */
 static const int writes_starved = 4;		/* max times reads can starve a write */
-static const int sleep_latency_multiple = 10;	/* multple for expire time when device is asleep */
+static const int sleep_latency_shift = 3;	/* multple for expire time when device is asleep */
 
 /* Elevator data */
 struct maple_data {
@@ -45,7 +45,7 @@ struct maple_data {
 	int fifo_expire[2][2];
 	int fifo_batch;
 	int writes_starved;
-  int sleep_latency_multiple;
+  	int sleep_latency_shift;
 };
 
 static inline struct maple_data *
@@ -86,12 +86,11 @@ maple_add_request(struct request_queue *q, struct request *rq)
 	 */
 
    	/* inrease expiration when device is asleep */
-   	unsigned int fifo_expire_suspended = mdata->fifo_expire[sync][dir] * sleep_latency_multiple;
-   	if (display_on && mdata->fifo_expire[sync][dir]) {
+   	if (display_on) {
    		rq->fifo_time = jiffies + mdata->fifo_expire[sync][dir];
    		list_add_tail(&rq->queuelist, &mdata->fifo_list[sync][dir]);
-   	} else if (!display_on && fifo_expire_suspended) {
-		rq->fifo_time = jiffies + mdata->fifo_expire[sync][dir];
+   	} else {
+		rq->fifo_time = jiffies + (mdata->fifo_expire[sync][dir] << sleep_latency_shift);
    		list_add_tail(&rq->queuelist, &mdata->fifo_list[sync][dir]);
    	}
 }
@@ -109,7 +108,7 @@ maple_expired_request(struct maple_data *mdata, int sync, int data_dir)
 	rq = rq_entry_fifo(list->next);
 
 	/* Request has expired */
-        if (time_after(jiffies, rq->fifo_time))
+    if (time_after(jiffies, rq->fifo_time))
 		return rq;
 
 	return NULL;
@@ -118,10 +117,8 @@ maple_expired_request(struct maple_data *mdata, int sync, int data_dir)
 static struct request *
 maple_choose_expired_request(struct maple_data *mdata)
 {
-	struct request *rq_sync_read = maple_expired_request(mdata, SYNC, READ);
-	struct request *rq_sync_write = maple_expired_request(mdata, SYNC, WRITE);
-	struct request *rq_async_read = maple_expired_request(mdata, ASYNC, READ);
-	struct request *rq_async_write = maple_expired_request(mdata, ASYNC, WRITE);
+	struct request *rq_async;
+	struct request *rq_sync;
 
 	/* Reset (non-expired-)batch-counter */
 	mdata->batched = 0;
@@ -131,24 +128,27 @@ maple_choose_expired_request(struct maple_data *mdata)
 	 * Asynchronous requests have priority over synchronous.
 	 * Read requests have priority over write.
 	 */
+	rq_async = maple_expired_request(mdata, ASYNC, READ);
+	rq_sync = maple_expired_request(mdata, SYNC, READ);
+	if (rq_async && rq_sync) {
+		if (time_after(rq_sync->fifo_time, rq_async->fifo_time))
+			return rq_async;
+	} else if (rq_async) {
+			return rq_async;
+	} else if (rq_sync) {
+			return rq_sync;
+	}
 
-   if (rq_async_read && rq_sync_read) {
-      if (time_after(rq_sync_read->fifo_time, rq_async_read->fifo_time))
-             return rq_async_read;
-   } else if (rq_async_read) {
-           return rq_async_read;
-   } else if (rq_sync_read) {
-           return rq_sync_read;
-   }
-
-   if (rq_async_write && rq_sync_write) {
-     if (time_after(rq_sync_write->fifo_time, rq_async_write->fifo_time))
-             return rq_async_write;
-   } else if (rq_async_write) {
-           return rq_async_write;
-   } else if (rq_sync_write) {
-           return rq_sync_write;
-   }
+	rq_async = maple_expired_request(mdata, ASYNC, WRITE);
+	rq_sync = maple_expired_request(mdata, SYNC, WRITE);
+	if (rq_async && rq_sync) {
+		if (time_after(rq_sync->fifo_time, rq_async->fifo_time))
+			return rq_async;
+	} else if (rq_async) {
+			return rq_async;
+	} else if (rq_sync) {
+			return rq_sync;
+	}
 
 	return NULL;
 }
@@ -293,7 +293,7 @@ static int maple_init_queue(struct request_queue *q, struct elevator_type *e)
 	mdata->fifo_expire[ASYNC][WRITE] = async_write_expire;
 	mdata->fifo_batch = fifo_batch;
 	mdata->writes_starved = writes_starved;
-	mdata->sleep_latency_multiple = sleep_latency_multiple;
+	mdata->sleep_latency_shift = sleep_latency_shift;
 
 	spin_lock_irq(q->queue_lock);
 	q->elevator = eq;
@@ -344,7 +344,7 @@ SHOW_FUNCTION(maple_async_read_expire_show, mdata->fifo_expire[ASYNC][READ], 1);
 SHOW_FUNCTION(maple_async_write_expire_show, mdata->fifo_expire[ASYNC][WRITE], 1);
 SHOW_FUNCTION(maple_fifo_batch_show, mdata->fifo_batch, 0);
 SHOW_FUNCTION(maple_writes_starved_show, mdata->writes_starved, 0);
-SHOW_FUNCTION(maple_sleep_latency_multiple_show, mdata->sleep_latency_multiple, 0);
+SHOW_FUNCTION(maple_sleep_latency_shift_show, mdata->sleep_latency_shift, 0);
 #undef SHOW_FUNCTION
 
 #define STORE_FUNCTION(__FUNC, __PTR, MIN, MAX, __CONV)			\
@@ -369,7 +369,7 @@ STORE_FUNCTION(maple_async_read_expire_store, &mdata->fifo_expire[ASYNC][READ], 
 STORE_FUNCTION(maple_async_write_expire_store, &mdata->fifo_expire[ASYNC][WRITE], 0, INT_MAX, 1);
 STORE_FUNCTION(maple_fifo_batch_store, &mdata->fifo_batch, 1, INT_MAX, 0);
 STORE_FUNCTION(maple_writes_starved_store, &mdata->writes_starved, 1, INT_MAX, 0);
-STORE_FUNCTION(maple_sleep_latency_multiple_store, &mdata->sleep_latency_multiple, 1, INT_MAX, 0);
+STORE_FUNCTION(maple_sleep_latency_shift_store, &mdata->sleep_latency_shift, 1, INT_MAX, 0);
 #undef STORE_FUNCTION
 
 #define DD_ATTR(name) \
@@ -383,7 +383,7 @@ static struct elv_fs_entry maple_attrs[] = {
 	DD_ATTR(async_write_expire),
 	DD_ATTR(fifo_batch),
 	DD_ATTR(writes_starved),
-  DD_ATTR(sleep_latency_multiple),
+  	DD_ATTR(sleep_latency_shift),
 	__ATTR_NULL
 };
 
