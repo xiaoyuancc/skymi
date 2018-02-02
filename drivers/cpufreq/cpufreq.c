@@ -2365,6 +2365,36 @@ unlock:
 }
 EXPORT_SYMBOL(cpufreq_update_policy);
 
+
+/*
+ *	cpufreq_set_freq - set min freq for a cpu
+ *	@cpu: CPU whose frequency needs to be changed
+ */
+int cpufreq_set_min_freq(unsigned int cpu, unsigned int min_freq)
+{
+	int ret;
+	struct cpufreq_policy new_policy;
+	struct cpufreq_policy *policy;
+
+	policy = cpufreq_cpu_get(cpu);
+	if (!policy)
+		return -EINVAL;
+
+	cpufreq_cpu_put(policy);
+					
+	memcpy(&new_policy, policy, sizeof(*policy));			
+
+	new_policy.min = min_freq;
+													
+	ret = cpufreq_set_policy(policy, &new_policy);		
+	if (!ret)							
+		policy->user_policy.min = min_freq;			
+	
+	return 0;
+}
+EXPORT_SYMBOL(cpufreq_set_min_freq);
+
+
 static int cpufreq_cpu_callback(struct notifier_block *nfb,
 					unsigned long action, void *hcpu)
 {
