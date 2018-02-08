@@ -37,4 +37,5 @@ ro.bootimage.build.date=Thu Dec 7 00:53:03 CST 2017
 ro.bootimage.build.date.utc=1512579183
 ro.bootimage.build.fingerprint=Xiaomi/sagit/sagit:7.1.1/NMF26X/7.12.7:user/release-keys
 persist.sys.usb.config=none
+persist.camera.HAL3.enabled=1
 
