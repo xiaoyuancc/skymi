@@ -7489,6 +7489,7 @@ static int select_energy_cpu_brute(struct task_struct *p, int prev_cpu, int sync
 	struct sched_domain *sd;
 	int target_cpu = prev_cpu, tmp_target;
 	bool boosted, prefer_idle, about_to_idle;
+	int cpu = smp_processor_id();
 
 	schedstat_inc(p, se.statistics.nr_wakeups_secb_attempts);
 	schedstat_inc(this_rq(), eas_stats.secb_attempts);
@@ -7600,7 +7601,7 @@ select_task_rq_fair(struct task_struct *p, int prev_cpu, int sd_flag, int wake_f
 	}
 
 	if (energy_aware() && !(cpu_rq(prev_cpu)->rd->overutilized))
-		return select_energy_cpu_brute(p, prev_cpu, sync, cpu);
+		return select_energy_cpu_brute(p, prev_cpu, sync);
 
 	rcu_read_lock();
 	for_each_domain(cpu, tmp) {
