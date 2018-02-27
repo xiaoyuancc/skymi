@@ -7493,7 +7493,9 @@ static int select_energy_cpu_brute(struct task_struct *p, int prev_cpu, int sync
 	schedstat_inc(p, se.statistics.nr_wakeups_secb_attempts);
 	schedstat_inc(this_rq(), eas_stats.secb_attempts);
 
-	if (sysctl_sched_sync_hint_enable && sync) {
+	bool about_to_idle = (cpu_rq(cpu)->nr_running < 2);
+
+	if (sysctl_sched_sync_hint_enable && sync && about_to_idle) {
 		int cpu = smp_processor_id();
 
 		if (cpumask_test_cpu(cpu, tsk_cpus_allowed(p))) {
