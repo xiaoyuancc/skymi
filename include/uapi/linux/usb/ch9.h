@@ -921,6 +921,7 @@ struct usb_config_summary_descriptor {
 	struct function_class_info cs_info[];
 } __attribute__((packed));
 
+/*
  * Precision time measurement capability descriptor: advertised by devices and
  * hubs that support PTM
  */
