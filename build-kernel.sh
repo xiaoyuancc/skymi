@@ -72,9 +72,9 @@ BUILD_NOW()
 	time make ARCH=arm64 sagit_user_defconfig
 
 	# build kernel and modules
-	time make ARCH=arm64 CROSS_COMPILE=android-toolchain-arm64/bin/aarch64-SAGIT-linux-android- -j $NR_CPUS
+	time make ARCH=arm64 CROSS_COMPILE=$KERNELDIR/android-toolchain-arm64/bin/aarch64-SAGIT-linux-android- -j $NR_CPUS
 	
-	STRIP=android-toolchain-arm64/bin/aarch64-SAGIT-linux-android-strip
+	STRIP=$KERNELDIR/android-toolchain-arm64/bin/aarch64-SAGIT-linux-android-strip
 
 	cp "$KERNELDIR"/.config "$KERNELDIR"/arch/arm64/configs/"$KERNEL_CONFIG_FILE";
 
