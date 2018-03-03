@@ -49,6 +49,7 @@ struct thread_info {
 	mm_segment_t		addr_limit;	/* address limit */
 #ifndef CONFIG_THREAD_INFO_IN_TASK
 	struct task_struct	*task;		/* main task structure */
+#endif
 	int			preempt_count;	/* 0 => preemptable, <0 => bug */
 #ifndef CONFIG_THREAD_INFO_IN_TASK
 	int			cpu;		/* cpu */
