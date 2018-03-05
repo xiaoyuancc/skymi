@@ -2,7 +2,7 @@
 clear
 
 LANG=C
-VERSION="V1.6"
+VERSION="V1.0"
 
 # What you need installed to compile
 # gcc, gpp, cpp, c++, g++, lzma, lzop, ia32-libs flex
@@ -102,7 +102,7 @@ BUILD_NOW()
 		sync
 
 		pushd "$KERNELDIR"/mkbootimg_tools;
-		"$KERNELDIR"/mkbootimg_tools/mkboot $MODEL "Kernel-Unknown-${VERSION}-Nougat-""${MODEL}".img;
+		"$KERNELDIR"/mkbootimg_tools/mkboot $MODEL "Kernel-Unknown-${VERSION}-Oreo-""${MODEL}".img;
 		popd;
 
 		#cp "$KERNELDIR"/mkbootimg_tools/boot2.img "$KERNELDIR"/READY-KERNEL/boot.img
@@ -114,6 +114,7 @@ BUILD_NOW()
 		rm "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
 		rm -rf "$KERNELDIR"/mkbootimg_tools/$MODEL/kernel;
 		rm -rf "$KERNELDIR"/mkbootimg_tools/$MODEL/ramdisk/crk_modules/*.ko;
+		git checkout "$KERNELDIR"/mkbootimg_tools/$MODEL/ramdisk/crk_modules/
 		echo "All Done";
 	else
 		if [ "$PYTHON_WAS_3" -eq "1" ]; then
