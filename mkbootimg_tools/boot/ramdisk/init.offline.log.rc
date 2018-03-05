@@ -1,7 +1,7 @@
 on post-fs-data
 	mkdir /data/local/log 0771 system system
 
-service kernellog /system/bin/sh /system/bin/kernellog.sh
+service kernellog /vendor/bin/sh /vendor/bin/kernellog.sh
 	class main
 	disabled
 	oneshot

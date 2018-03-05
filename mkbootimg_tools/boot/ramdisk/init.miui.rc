@@ -186,6 +186,20 @@ on boot
     # cpu trace
     chown root system /d/ktrace/sched/pids
     chmod 0660 /d/ktrace/sched/pids
+    chown system system /d/ktrace/sched/zygote_pid
+    chmod 0660 /d/ktrace/sched/zygote_pid
+    chown system system /d/ktrace/sched/zygote64_pid
+    chmod 0660 /d/ktrace/sched/zygote64_pid
+
+    # rtmm
+    chown system system /d/rtmm/reclaim/auto_reclaim
+    chmod 0660 /d/rtmm/reclaim/auto_reclaim
+    chown system system /d/rtmm/reclaim/global_reclaim
+    chmod 0660 /d/rtmm/reclaim/global_reclaim
+    chown system system /d/rtmm/reclaim/proc_reclaim
+    chmod 0660 /d/rtmm/reclaim/proc_reclaim
+    chown system system /d/rtmm/reclaim/kill
+    chmod 0660 /d/rtmm/reclaim/kill
 
     mkdir /dev/cpuctl/fg_service
     chown system system /dev/cpuctl/fg_service/tasks
