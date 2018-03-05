@@ -71,10 +71,10 @@ static void change_min_freqs(bool sleep)
 {
 	if(sleep){
 		cpufreq_set_min_freq(0, 300000);
-		//cpufreq_set_min_freq(4, 300000);
+		cpufreq_set_min_freq(4, 300000);
 	}else{
 		cpufreq_set_min_freq(0, 518400);
-		//cpufreq_set_min_freq(4, 806400);
+		cpufreq_set_min_freq(4, 806400);
 	}
 }
 
