@@ -36,6 +36,55 @@ BUILD_NOW()
 		rm "$KERNELDIR"/READY-KERNEL/boot.img;
 	fi;
 
+	# mkdir start
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/acct ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/acct;
+	fi;
+
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/bt_firmware ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/bt_firmware;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/cache ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/cache;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/config ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/config;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/data ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/data;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/dev ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/dev;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/dsp ]; then
+		mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/dsp;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/firmware ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/firmware;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/mnt ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/mnt;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/oem ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/oem;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/persist ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/persist;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/proc ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/proc;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/storage ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/storage;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/sys ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/sys;
+	fi;
+	if [ ! -e "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/system ]; then
+			mkdir "$KERNELDIR"/mkbootimg_tools/${MODEL}/ramdisk/system;
+	fi;
+	# mkdir end
+
 	PYTHON_CHECK=$(ls -la /usr/bin/python | grep python3 | wc -l);
 	PYTHON_WAS_3=0;
 
