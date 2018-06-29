@@ -1,6 +1,5 @@
 # miui init rc
 import /init.miui8.rc
-import /init.miui.google_revenue_share.rc
 
 on init
     # Create cgroup mount point for memory and freezer
@@ -35,6 +34,9 @@ on late-init
     chmod 0664 /dev/cpuset/vr/tasks
     chmod 0664 /dev/cpuset/top-app/boost/tasks
 
+on post-fs
+   start  mqsasd
+
 on post-fs-data
     mkdir /data/system 0775 system system
     mkdir /data/system/mcd 0755 system system
@@ -49,6 +51,10 @@ on post-fs-data
     chown system system /sys/hwconf/hw_info
     chown system system /sys/hwconf/hw_mon
     restorecon_recursive /sys/hwconf
+
+on post-fs-data
+    restorecon_recursive /sys/kernel/debug/rtmm
+    restorecon_recursive /sys/kernel/debug/ktrace
 
 # secureboot
 service setlockstate /sbin/setlockstate
@@ -90,6 +96,17 @@ service mcd_service /system/bin/mcd
 on property:sys.boot_completed=1
     start mcd_service
     start miui-post-boot
+
+# for coredump
+on property:sys.coredump.config=on
+    write /proc/sys/kernel/core_pattern "|/system/bin/mcd init sudebug coredump_output %p %e %t"
+    write /proc/sys/kernel/core_pipe_limit 1
+    write /proc/sys/fs/suid_dumpable 1
+
+on property:sys.coredump.config=off
+    write /proc/sys/kernel/core_pattern  core
+    write /proc/sys/kernel/core_pipe_limit 0
+    write /proc/sys/fs/suid_dumpable 0
 
 service mdb_svc  /system/xbin/mdb_svc
     class late_start
@@ -154,11 +171,10 @@ on post-fs-data
 service fdpp /system/bin/fdpp daemon
     class main
     user root
-    group root
+    group system
 
 # mqsasd
 service mqsasd /system/xbin/mqsasd daemon
-    class main
     user root
     group system
 
@@ -182,14 +198,16 @@ service miui-post-boot /system/bin/sh /init.miui.post_boot.sh
     disabled
     oneshot
 
+service system_perf_init /vendor/bin/system_perf_init
+    class main
+    user root
+    oneshot
+    disabled
+
 on boot
     # cpu trace
     chown root system /d/ktrace/sched/pids
     chmod 0660 /d/ktrace/sched/pids
-    chown system system /d/ktrace/sched/zygote_pid
-    chmod 0660 /d/ktrace/sched/zygote_pid
-    chown system system /d/ktrace/sched/zygote64_pid
-    chmod 0660 /d/ktrace/sched/zygote64_pid
 
     # rtmm
     chown system system /d/rtmm/reclaim/auto_reclaim
@@ -216,5 +234,5 @@ on boot
     write /dev/cpuctl/fg_service/fg_limited/cpu.rt_runtime_us 400000
     write /dev/cpuctl/fg_service/fg_limited/cpu.rt_period_us 1000000
 
-on property:persist.sys.miui_bg_binder=true
-    write /sys/kernel/debug/binder/bg_enable "1"
+on post-fs-data
+    start system_perf_init

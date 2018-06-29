@@ -2,7 +2,6 @@
 # ADDITIONAL_DEFAULT_PROPERTIES
 #
 ro.miui.has_cust_partition=true
-ro.secureboot.devicelock=1
 ro.sys.sdcardfs=1
 ro.secure=1
 security.perf_harden=1
@@ -31,8 +30,8 @@ debug.sf.disable_backpressure=1
 #
 # BOOTIMAGE_BUILD_PROPERTIES
 #
-ro.bootimage.build.date=Thu Feb 1 05:23:22 CST 2018
-ro.bootimage.build.date.utc=1517433802
-ro.bootimage.build.fingerprint=Xiaomi/sagit/sagit:8.0.0/OPR1.170623.027/8.2.1:user/release-keys
-persist.sys.usb.config=none
+ro.bootimage.build.date=Fri Jun 22 01:08:19 CST 2018
+ro.bootimage.build.date.utc=1529600899
+ro.bootimage.build.fingerprint=Xiaomi/sagit/sagit:8.0.0/OPR1.170623.027/8.6.22:user/release-keys
+persist.sys.usb.config=mtp,adb
 

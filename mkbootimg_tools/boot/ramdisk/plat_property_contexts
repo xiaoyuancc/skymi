@@ -45,6 +45,8 @@ persist.logd.security   u:object_r:device_logging_prop:s0
 persist.logd.           u:object_r:logd_prop:s0
 persist.log.tag         u:object_r:log_tag_prop:s0
 persist.mmc.            u:object_r:mmc_prop:s0
+persist.radio.imei      u:object_r:deviceid_prop:s0
+persist.radio.meid      u:object_r:deviceid_prop:s0
 persist.radio           u:object_r:radio_prop:s0
 persist.security.       u:object_r:system_prop:s0
 persist.service.bdroid. u:object_r:bluetooth_prop:s0
@@ -70,6 +72,9 @@ ro.miui.                       u:object_r:miui_default_prop:s0
 ro.persistent_properties.ready  u:object_r:persistent_properties_ready_prop:s0
 ro.product.locale.language        u:object_r:miui_default_prop:s0
 ro.product.locale.region            u:object_r:miui_default_prop:s0
+ro.ril.miui.imei        u:object_r:deviceid_prop:s0
+ro.ril.oem.imei         u:object_r:deviceid_prop:s0
+ro.ril.oem.meid         u:object_r:deviceid_prop:s0
 ro.ril.                 u:object_r:radio_prop:s0
 ro.runtime.firstboot    u:object_r:firstboot_prop:s0
 ro.runtime.             u:object_r:system_prop:s0

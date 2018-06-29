@@ -28,3 +28,8 @@ wigig                                          u:object_r:wigig_service:s0
 media.dolby_memoryservice                      u:object_r:audioserver_service:s0
 sms-sec                                        u:object_r:radio_service:s0
 com.goodix.FingerprintService                  u:object_r:goodix_fingerprint_service:s0
+com.fingerprints.extension.engineering.IFingerprintEngineering u:object_r:fingerprintd_service:s0
+com.fingerprints.extension.sensortest.IFingerprintSensorTest   u:object_r:fingerprintd_service:s0
+com.fingerprints.extension.navigation.IFingerprintNavigation   u:object_r:fingerprintd_service:s0
+com.fingerprints.extension.calibration.IFingerprintCalibration u:object_r:fingerprintd_service:s0
+com.fingerprints.extension.recalibration.IFingerprintRecalibration  u:object_r:fingerprintd_service:s0

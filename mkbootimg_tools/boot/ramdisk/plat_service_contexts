@@ -185,7 +185,7 @@ miui.whetstone.klo u:object_r:mcd_service:s0
 miui.whetstone.power u:object_r:mcd_service:s0
 miui.whetstone.net u:object_r:mcd_service:s0
 xiaomi.joyose    u:object_r:system_app_service:s0
-miui.whetstone    u:object_r:system_app_service:s0
+miui.whetstone    u:object_r:miui_whetstone_service:s0
 mdb.remote_display u:object_r:mdb_display_service:s0
 miui.fdpp u:object_r:fdpp_service:s0
 miui.sedc u:object_r:sedc_service:s0
@@ -200,3 +200,6 @@ whetstone.activity u:object_r:whetstone_service:s0
 miui.security.keystore u:object_r:miui_security_keystore_service:s0
 perfshielder       u:object_r:perfshielder:s0
 locationpolicy          u:object_r:locationpolicy:s0
+ProcessManager          u:object_r:miui_process_service:s0
+android.app.fod.ICallback         u:object_r:system_app_service:s0
+EnterpriseManager        u:object_r:miui_enterprise_service:s0

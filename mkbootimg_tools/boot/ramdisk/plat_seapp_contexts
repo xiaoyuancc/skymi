@@ -20,3 +20,4 @@ user=_app seinfo=platform isPrivApp=true name=com.miui.video domain=priv_app typ
 user=_app seinfo=platform isPrivApp=true name=com.android.soundrecorder domain=priv_app type=app_data_file levelFrom=user
 user=_app seinfo=platform isPrivApp=true name=com.android.soundrecorder:remote domain=priv_app type=app_data_file levelFrom=user
 user=_app seinfo=platform isPrivApp=true name=com.xiaomi.scanner domain=priv_app type=app_data_file levelFrom=user
+user=_app seinfo=platform isPrivApp=true name=com.miui.gallery domain=priv_app type=app_data_file levelFrom=user

@@ -1,17 +1,14 @@
 on boot
-    rmmod wlan.ko
     mount none /crk_modules /system/lib/modules/ bind
 
-
-# launch crk kernel boot script
-service crk_script /system/bin/sh /fs_onboot.sh
-    class late_start
-    user root
-    group root
-    disabled
-    oneshot
-
+on late-fs
+    # boot time fs tune
+    write /sys/block/sda/queue/iostats 0
+    write /sys/block/sda/queue/scheduler fiops
+    write /sys/block/sda/queue/iosched/slice_idle 0
+    write /sys/block/sda/queue/read_ahead_kb 2048
+    write /sys/block/sda/queue/nr_requests 256
 
 on property:sys.boot_completed=1
-    start crk_script
-
+    # end boot time fs tune
+    write /sys/block/sda/queue/read_ahead_kb 512
