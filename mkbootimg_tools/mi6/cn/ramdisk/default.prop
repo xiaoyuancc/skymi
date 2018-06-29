@@ -30,8 +30,8 @@ debug.sf.disable_backpressure=1
 #
 # BOOTIMAGE_BUILD_PROPERTIES
 #
-ro.bootimage.build.date=Fri Jun 22 01:08:19 CST 2018
-ro.bootimage.build.date.utc=1529600899
-ro.bootimage.build.fingerprint=Xiaomi/sagit/sagit:8.0.0/OPR1.170623.027/8.6.22:user/release-keys
+ro.bootimage.build.date=Fri Jun 29 01:06:31 CST 2018
+ro.bootimage.build.date.utc=1530205591
+ro.bootimage.build.fingerprint=Xiaomi/sagit/sagit:8.0.0/OPR1.170623.027/8.6.29:user/release-keys
 persist.sys.usb.config=mtp,adb
 
