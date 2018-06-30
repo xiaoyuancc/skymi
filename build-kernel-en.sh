@@ -2,7 +2,7 @@
 clear
 
 LANG=C
-VERSION="V1"
+VERSION="v1"
 
 # What you need installed to compile
 # gcc, gpp, cpp, c++, g++, lzma, lzop, ia32-libs flex
@@ -26,6 +26,11 @@ mkd()
 	fi;
 }
 
+patchDMVerify()
+{
+	sed -i 's/\x2c\x76\x65\x72\x69\x66\x79/\x00\x00\x00\x00\x00\x00\x00/g' $1;
+	echo -e "\033[33m DM-Verify patched. \033[0m"
+}
 
 BUILD_NOW()
 {
@@ -68,23 +73,6 @@ BUILD_NOW()
 	mkd ${MODEL} ${VER} "sys";
 	mkd ${MODEL} ${VER} "system";
 	# mkdir end
-	
-	PYTHON_CHECK=$(ls -la /usr/bin/python | grep python3 | wc -l);
-	PYTHON_WAS_3=0;
-
-	if [ "$PYTHON_CHECK" -eq "1" ] && [ -e /usr/bin/python2 ]; then
-		if [ -e /usr/bin/python2 ]; then
-			rm /usr/bin/python
-			ln -s /usr/bin/python2 /usr/bin/python
-			echo "Switched to Python2 for building kernel will switch back when done";
-			PYTHON_WAS_3=1;
-		else
-			echo "You need Python2 to build this kernel. install and come back."
-			exit 1;
-		fi;
-	else
-		echo "Python2 is used! all good, building!";
-	fi;
 
 	# remove all old modules before compile
 	for i in $(find "$KERNELDIR"/ -name "*.ko"); do
@@ -126,6 +114,8 @@ BUILD_NOW()
 
 		cp "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb mkbootimg_tools/$MODEL/${VER}/kernel;
 
+		time patchDMVerify "mkbootimg_tools/$MODEL/${VER}/kernel";
+
 		for i in $(find "$KERNELDIR" -name '*.ko'); do
 			$STRIP -g "$i"
 			cp -av "$i" "$KERNELDIR"/mkbootimg_tools/$MODEL/${VER}/ramdisk/crk_modules/;
@@ -158,10 +148,6 @@ BUILD_NOW()
 		echo -e "\033[36m ImgDir：${KERNELDIR}/mkbootimg_tools/$MODEL/${VER} \036[0m"
 		echo -e "\033[32m All Done \033[0m"
 	else
-		if [ "$PYTHON_WAS_3" -eq "1" ]; then
-			rm /usr/bin/python
-			ln -s /usr/bin/python3 /usr/bin/python
-		fi;
 
 		# with red-color
 		echo -e "\e[1;31mKernel STUCK in BUILD! no Image.gz-dtb exist\e[m"

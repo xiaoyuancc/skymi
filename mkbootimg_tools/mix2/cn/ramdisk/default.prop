@@ -29,8 +29,8 @@ persist.sys.timezone=Asia/Shanghai
 #
 # BOOTIMAGE_BUILD_PROPERTIES
 #
-ro.bootimage.build.date=Thu May 31 01:02:21 CST 2018
-ro.bootimage.build.date.utc=1527699741
-ro.bootimage.build.fingerprint=Xiaomi/chiron/chiron:8.0.0/OPR1.170623.027/8.5.31:user/release-keys
+ro.bootimage.build.date=Fri Jun 29 00:51:48 CST 2018
+ro.bootimage.build.date.utc=1530204708
+ro.bootimage.build.fingerprint=Xiaomi/chiron/chiron:8.0.0/OPR1.170623.027/8.6.29:user/release-keys
 persist.sys.usb.config=mtp,adb
 

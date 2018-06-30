@@ -640,7 +640,6 @@
 /dev/coresight-tmc-etf		u:object_r:qdss_device:s0
 /dev/msm_thermal_query		u:object_r:thermal_device:s0
 /dev/qsee_ipc_irq_spss		u:object_r:qsee_ipc_irq_spss_device:s0
-/system/bin/rootdetectd		u:object_r:rootdetectd_daemon_exec:s0
 /system/bin/mmbn-daemon		u:object_r:mmbn-daemon_exec:s0
 /dev/socket/rild2-debug		u:object_r:rild_debug_socket:s0
 /dev/socket/rild-debug2		u:object_r:rild_debug_socket:s0

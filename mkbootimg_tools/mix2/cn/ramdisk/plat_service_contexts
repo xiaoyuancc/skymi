@@ -202,3 +202,4 @@ perfshielder       u:object_r:perfshielder:s0
 locationpolicy          u:object_r:locationpolicy:s0
 ProcessManager          u:object_r:miui_process_service:s0
 android.app.fod.ICallback         u:object_r:system_app_service:s0
+EnterpriseManager        u:object_r:miui_enterprise_service:s0

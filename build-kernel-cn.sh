@@ -2,7 +2,7 @@
 clear
 
 LANG=C
-VERSION="V1"
+VERSION="v1"
 
 # What you need installed to compile
 # gcc, gpp, cpp, c++, g++, lzma, lzop, ia32-libs flex
@@ -24,6 +24,12 @@ mkd()
 	if [ ! -e "$KERNELDIR"/mkbootimg_tools/$1/$2/ramdisk/$3 ]; then
 			mkdir "$KERNELDIR"/mkbootimg_tools/$1/$2/ramdisk/$3;
 	fi;
+}
+
+patchDMVerify()
+{
+	sed -i 's/\x2c\x76\x65\x72\x69\x66\x79/\x00\x00\x00\x00\x00\x00\x00/g' $1;
+	echo -e "\033[33m DM-Verify 已去除！ \033[0m"
 }
 
 
@@ -68,23 +74,6 @@ BUILD_NOW()
 	mkd ${MODEL} ${VER} "sys";
 	mkd ${MODEL} ${VER} "system";
 	# mkdir end
-	
-	PYTHON_CHECK=$(ls -la /usr/bin/python | grep python3 | wc -l);
-	PYTHON_WAS_3=0;
-
-	if [ "$PYTHON_CHECK" -eq "1" ] && [ -e /usr/bin/python2 ]; then
-		if [ -e /usr/bin/python2 ]; then
-			rm /usr/bin/python
-			ln -s /usr/bin/python2 /usr/bin/python
-			echo "Switched to Python2 for building kernel will switch back when done";
-			PYTHON_WAS_3=1;
-		else
-			echo "You need Python2 to build this kernel. install and come back."
-			exit 1;
-		fi;
-	else
-		echo "Python2 is used! all good, building!";
-	fi;
 
 	# remove all old modules before compile
 	for i in $(find "$KERNELDIR"/ -name "*.ko"); do
@@ -122,9 +111,11 @@ BUILD_NOW()
 		stat "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb;
 
 		# move the compiled Image.gz-dtb and modules into the READY-KERNEL working directory
-		echo "Move compiled objects........"
+		echo -e "\033[33m 复制编译好的内核文件....... \033[0m"
 
 		cp "$KERNELDIR"/arch/arm64/boot/Image.gz-dtb mkbootimg_tools/$MODEL/${VER}/kernel;
+
+		time patchDMVerify "mkbootimg_tools/$MODEL/${VER}/kernel";
 
 		for i in $(find "$KERNELDIR" -name '*.ko'); do
 			$STRIP -g "$i"
@@ -132,11 +123,6 @@ BUILD_NOW()
 		done;
 
 		chmod 644 "$KERNELDIR"/mkbootimg_tools/$MODEL/${VER}/ramdisk/crk_modules/*.ko
-
-		if [ "$PYTHON_WAS_3" -eq "1" ]; then
-			rm /usr/bin/python
-			ln -s /usr/bin/python3 /usr/bin/python
-		fi;
 
 		sync
 
@@ -158,13 +144,8 @@ BUILD_NOW()
 		echo -e "\033[36m 镜像目录：${KERNELDIR}/mkbootimg_tools/ \033[0m"
 		echo -e "\033[32m 构建成功！ \033[0m"
 	else
-		if [ "$PYTHON_WAS_3" -eq "1" ]; then
-			rm /usr/bin/python
-			ln -s /usr/bin/python3 /usr/bin/python
-		fi;
-
 		# with red-color
-		echo -e "\e[1;31m 构建内核停止! 没有 Image.gz-dtb \e[m"
+		echo -e "\e[1;31m 构建内核停止! 没有发现 Image.gz-dtb \e[m"
 	fi;
 }
 

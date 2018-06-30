@@ -364,12 +364,6 @@ on post-fs
 on late-fs
     # HALs required before storage encryption can get unlocked (FBE/FDE)
     class_start early_hal
-    # boot time fs tune
-    write /sys/block/sda/queue/iostats 0
-    write /sys/block/sda/queue/scheduler zen
-    write /sys/block/sda/queue/iosched/slice_idle 0
-    write /sys/block/sda/queue/read_ahead_kb 2048
-    write /sys/block/sda/queue/nr_requests 256
 
 on property:cache.trigger=1 && property:persist.radio.goldencopy_flag=true
     write /cache/recovery/efs 1
@@ -679,8 +673,6 @@ on property:vold.decrypt=trigger_shutdown_framework
     class_reset main
 
 on property:sys.boot_completed=1
-    # end boot time fs tune
-    write /sys/block/sda/queue/read_ahead_kb 1024
     bootchart stop
 
 # system server cannot write to /proc/sys files,
